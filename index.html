@@ -316,7 +316,7 @@
     // ========================
     // CONFIGURACIÓN - CAMBIA ESTA URL POR LA TUYA
     // ========================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJaMqwdnAbYRbFEDbbbAQXAJngKbwYuo8sS-bRfbzpSyntIPOkoM60DQty5dcZq2ux/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRB27saDckxG2dH1shHZRiM6Iq_jmUlnNeZmB1WnJywn-yeBp0YuWhgUwCVkG7fWo8/exec";
     
     // ========================
     // DICCIONARIO DE BANDERAS
@@ -526,7 +526,6 @@
                 return;
             }
         
-            // Obtener predicciones y marcadores (pueden estar vacíos)
             const prediccionesMap = data.predicciones || {};
             const marcadoresMap = data.marcadores || {};
         
@@ -546,52 +545,13 @@
                 html += `<div style="margin-bottom: 25px;"><h3 style="color: #1a472a; border-left: 4px solid #1a472a; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
             
                 for (const partido of partidosPorFecha[fecha]) {
-                    const prediccion = prediccionesMap[partido.id];
-                    const marcador = marcadoresMap[partido.id];
+                    const partidoId = String(partido.id); // Asegurar string
+                    const prediccion = prediccionesMap[partidoId] || null;
+                    const marcador = marcadoresMap[partidoId] || null;
                     const horaCDMX = convertirHoraCDMX(partido.horaET);
                     const claseGrupo = obtenerClaseGrupo(partido.grupo);
                 
-                    // Verificar qué tipo de predicción tiene
-                    const tieneGanador = prediccion && prediccion !== "";
-                    const tieneGoles = marcador && marcador.golesLocal !== "" && marcador.golesLocal !== undefined && marcador.golesVisitante !== "" && marcador.golesVisitante !== undefined;
-                    const tienePrediccionCompleta = tieneGanador && tieneGoles;
-                    const tieneSoloGanador = tieneGanador && !tieneGoles;
-                
-                    let marcadorHtml = '';
-                
-                    if (tienePrediccionCompleta) {
-                        // Marcador completo y bonito
-                        marcadorHtml = `
-                            <div style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1a472a, #0d2818); border-radius: 60px; padding: 10px 15px; margin-top: 10px;">
-                                <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;">
-                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}" style="width: 1.8rem; height: 1.2rem;"></span>` : ''}
-                                    <span style="color: white; font-weight: 500;">${partido.equipo1}</span>
-                                    <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.2rem;">${marcador.golesLocal}</span>
-                                </div>
-                                <div style="color: white; font-weight: bold; margin: 0 5px;">VS</div>
-                                <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;">
-                                    <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.2rem;">${marcador.golesVisitante}</span>
-                                    <span style="color: white; font-weight: 500;">${partido.equipo2}</span>
-                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}" style="width: 1.8rem; height: 1.2rem;"></span>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    } else if (tieneSoloGanador) {
-                        // Solo ganador, sin goles
-                        marcadorHtml = `
-                            <div style="background: #e8f5e9; border-radius: 40px; padding: 10px; margin-top: 10px; text-align: center;">
-                                🏆 <strong>Ganador:</strong> ${prediccion}
-                            </div>
-                        `;
-                    } else {
-                        // Sin predicción
-                        marcadorHtml = `
-                            <div style="background: #f5f5f5; border-radius: 40px; padding: 10px; margin-top: 10px; text-align: center; color: #999;">
-                                ❌ Sin predicción registrada
-                            </div>
-                        `;
-                    }
-                
+                    // Siempre mostrar los equipos
                     html += `
                         <div class="partido-card" style="margin-bottom: 15px;">
                             <div class="partido-info">
@@ -599,15 +559,69 @@
                                 <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
                                 <span>🏟️ ${partido.estadio}</span>
                             </div>
-                            <div style="font-weight: 500; color: #555; margin-top: 5px;">Tu predicción:</div>
-                            ${marcadorHtml}
-                            <div class="recuadro-manual"></div>
-                        </div>
+                            <div class="equipos">
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                    ${partido.equipo1}
+                                </span>
+                                <span class="vs">vs</span>
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                    ${partido.equipo2}
+                                </span>
+                            </div>
                     `;
+                
+                    // Sección de predicción
+                    if (prediccion) {
+                        if (marcador && marcador.golesLocal && marcador.golesVisitante) {
+                            // Predicción con marcador
+                            html += `
+                                <div style="margin-top: 12px;">
+                                    <div style="background: linear-gradient(135deg, #1a472a, #0d2818); border-radius: 60px; padding: 10px 15px;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.3rem;">${marcador.golesLocal}</span>
+                                                <span style="color: white;">${partido.equipo1}</span>
+                                            </div>
+                                            <div style="color: white; font-weight: bold;">VS</div>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="color: white;">${partido.equipo2}</span>
+                                                <span style="background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.3rem;">${marcador.golesVisitante}</span>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: center; color: #ccc; font-size: 0.75rem; margin-top: 5px;">Ganador: ${prediccion}</div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Solo ganador
+                            html += `
+                                <div style="margin-top: 12px;">
+                                    <div style="background: #e8f5e9; border-radius: 40px; padding: 10px; text-align: center;">
+                                        🏆 <strong>Ganador:</strong> ${prediccion}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        // Sin predicción
+                        html += `
+                            <div style="margin-top: 12px;">
+                                <div style="background: #f5f5f5; border-radius: 40px; padding: 10px; text-align: center; color: #999;">
+                                    ⚠️ Sin predicción registrada
+                                </div>
+                            </div>
+                        `;
+                    }
+                
+                    html += `<div class="recuadro-manual"></div>`;
+                    html += `</div>`; // cierre partido-card
                 }
                 html += `</div>`;
             }
             contenedor.innerHTML = html;
+        
         } catch (error) {
             console.error("Error:", error);
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
