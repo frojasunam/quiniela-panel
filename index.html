@@ -526,13 +526,13 @@
                 return;
             }
         
-            if (Object.keys(data.predicciones).length === 0) {
-                contenedor.innerHTML = `<p>⚠️ ${nombre} aún no tiene predicciones guardadas.</p>`;
-                return;
-            }
+            // Obtener predicciones y marcadores (pueden estar vacíos)
+            const prediccionesMap = data.predicciones || {};
+            const marcadoresMap = data.marcadores || {};
         
-            let html = `<p><strong>${nombre}</strong> - Predicciones registradas:</p>`;
+            let html = `<p><strong>${nombre}</strong> - Resumen de predicciones:</p>`;
         
+            // Agrupar partidos por fecha
             const partidosPorFecha = {};
             partidosCalendario.forEach(partido => {
                 if (!partidosPorFecha[partido.fecha]) partidosPorFecha[partido.fecha] = [];
@@ -543,54 +543,63 @@
         
             for (const fecha of fechasOrdenadas) {
                 const fechaLegible = formatearFechaCompleta(fecha);
-                html += `<div style="margin-bottom: 20px;"><h3 style="color: #1a472a; border-left: 4px solid #1a472a; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
+                html += `<div style="margin-bottom: 25px;"><h3 style="color: #1a472a; border-left: 4px solid #1a472a; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
             
                 for (const partido of partidosPorFecha[fecha]) {
-                    const prediccion = data.predicciones[partido.id];
-                    const marcador = data.marcadores[partido.id];
+                    const prediccion = prediccionesMap[partido.id];
+                    const marcador = marcadoresMap[partido.id];
                     const horaCDMX = convertirHoraCDMX(partido.horaET);
                     const claseGrupo = obtenerClaseGrupo(partido.grupo);
                 
-                    // Construir marcador estilo partido
+                    // Verificar qué tipo de predicción tiene
+                    const tieneGanador = prediccion && prediccion !== "";
+                    const tieneGoles = marcador && marcador.golesLocal !== "" && marcador.golesLocal !== undefined && marcador.golesVisitante !== "" && marcador.golesVisitante !== undefined;
+                    const tienePrediccionCompleta = tieneGanador && tieneGoles;
+                    const tieneSoloGanador = tieneGanador && !tieneGoles;
+                
                     let marcadorHtml = '';
-                    if (prediccion && marcador && marcador.golesLocal !== "" && marcador.golesVisitante !== "") {
+                
+                    if (tienePrediccionCompleta) {
+                        // Marcador completo y bonito
                         marcadorHtml = `
-                            <div style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1a472a, #0d2818); border-radius: 60px; padding: 12px 20px; margin-top: 12px;">
-                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center;">
-                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}" style="width: 2rem; height: 1.5rem; border-radius: 4px;"></span>` : ''}
-                                    <span style="color: white; font-weight: 600;">${partido.equipo1}</span>
-                                    <span style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 40px; color: #ffd700; font-weight: bold; font-size: 1.3rem;">${marcador.golesLocal}</span>
+                            <div style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #1a472a, #0d2818); border-radius: 60px; padding: 10px 15px; margin-top: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;">
+                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}" style="width: 1.8rem; height: 1.2rem;"></span>` : ''}
+                                    <span style="color: white; font-weight: 500;">${partido.equipo1}</span>
+                                    <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.2rem;">${marcador.golesLocal}</span>
                                 </div>
-                                <div style="color: white; font-weight: bold; margin: 0 10px;">VS</div>
-                                <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center;">
-                                    <span style="background: rgba(255,255,255,0.2); padding: 6px 16px; border-radius: 40px; color: #ffd700; font-weight: bold; font-size: 1.3rem;">${marcador.golesVisitante}</span>
-                                    <span style="color: white; font-weight: 600;">${partido.equipo2}</span>
-                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}" style="width: 2rem; height: 1.5rem; border-radius: 4px;"></span>` : ''}
+                                <div style="color: white; font-weight: bold; margin: 0 5px;">VS</div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;">
+                                    <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.2rem;">${marcador.golesVisitante}</span>
+                                    <span style="color: white; font-weight: 500;">${partido.equipo2}</span>
+                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}" style="width: 1.8rem; height: 1.2rem;"></span>` : ''}
                                 </div>
                             </div>
                         `;
-                    } else if (prediccion) {
+                    } else if (tieneSoloGanador) {
+                        // Solo ganador, sin goles
                         marcadorHtml = `
-                            <div style="background: #f0f0f0; border-radius: 30px; padding: 10px; margin-top: 10px; text-align: center;">
-                                ⚽ <strong>Ganador:</strong> ${prediccion}
+                            <div style="background: #e8f5e9; border-radius: 40px; padding: 10px; margin-top: 10px; text-align: center;">
+                                🏆 <strong>Ganador:</strong> ${prediccion}
                             </div>
                         `;
                     } else {
+                        // Sin predicción
                         marcadorHtml = `
-                            <div style="background: #f0f0f0; border-radius: 30px; padding: 10px; margin-top: 10px; text-align: center; color: #999;">
+                            <div style="background: #f5f5f5; border-radius: 40px; padding: 10px; margin-top: 10px; text-align: center; color: #999;">
                                 ❌ Sin predicción registrada
                             </div>
                         `;
                     }
                 
                     html += `
-                        <div class="partido-card">
+                        <div class="partido-card" style="margin-bottom: 15px;">
                             <div class="partido-info">
                                 <span class="grupo-tag ${claseGrupo}">Grupo ${partido.grupo}</span>
                                 <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
                                 <span>🏟️ ${partido.estadio}</span>
                             </div>
-                            <div style="font-weight: 500; color: #555; margin-bottom: 5px;">Tu predicción:</div>
+                            <div style="font-weight: 500; color: #555; margin-top: 5px;">Tu predicción:</div>
                             ${marcadorHtml}
                             <div class="recuadro-manual"></div>
                         </div>
@@ -604,7 +613,6 @@
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
         }
     }
-    
     // ========================
     // RESULTADOS (GET)
     // ========================
