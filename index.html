@@ -275,6 +275,7 @@
         <button class="tab-btn active" data-tab="calendario">📅 Calendario</button>
         <button class="tab-btn" data-tab="predicciones">📋 Predicciones</button>
         <button class="tab-btn" data-tab="resultados">🏆 Resultados</button>
+        <button class="tab-btn" data-tab="posiciones">📊 Tabla de Posiciones</button>
     </div>
     
     <!-- Pestaña Calendario -->
@@ -305,6 +306,12 @@
     <div id="resultados" class="tab-content">
         <h2>🏆 Resultados Reales</h2>
         <div id="resultados-container" class="cargando">Cargando resultados...</div>
+    </div>
+
+    <!-- Pestaña de Tabla -->
+    <div id="posiciones" class="tab-content">
+        <h2>📊 Tabla de Posiciones</h2>
+        <div id="posiciones-container" class="cargando">Cargando tabla de posiciones...</div>
     </div>
     
     <footer>
@@ -744,28 +751,30 @@
     // NAVEGACIÓN DE PESTAÑAS
     // ========================
     function initTabs() {
-        const tabs = ['calendario', 'predicciones', 'resultados'];
+        const tabs = ['calendario', 'predicciones', 'resultados', 'posiciones'];
+    
         tabs.forEach(tab => {
             const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
             if (btn) {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    
+                
                     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
                     document.getElementById(tab).classList.add('active');
-                    
+                
                     if (tab === 'predicciones') {
                         const nombre = document.getElementById('selector-familiar-pred').value;
                         cargarPredicciones(nombre);
                     } else if (tab === 'resultados') {
                         cargarResultados();
+                    } else if (tab === 'posiciones') {
+                        cargarTablaPosiciones();
                     }
                 });
             }
         });
     }
-    
     // ========================
     // BOTÓN PDF
     // ========================
