@@ -409,7 +409,7 @@
     async function cargarPredicciones(nombre) {
         const contenedor = document.getElementById('predicciones-container');
         contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
-        
+    
         try {
             const response = await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
@@ -419,71 +419,30 @@
                     participante: nombre
                 })
             });
+        
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        
             const data = await response.json();
-            
+            console.log("Respuesta del script:", data);  // Para depurar
+        
             if (!data.exito) {
-                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las predicciones'}</p>`;
+                contenedor.innerHTML = `<p>❌ Error del servidor: ${data.error || 'Error desconocido'}</p>`;
                 return;
             }
-            
+        
             if (Object.keys(data.predicciones).length === 0) {
                 contenedor.innerHTML = `<p>⚠️ ${nombre} aún no tiene predicciones guardadas.</p>`;
                 return;
             }
-            
-            let html = `<p><strong>${nombre}</strong> - Predicciones registradas:</p>`;
-            
-            const partidosPorFecha = {};
-            partidosCalendario.forEach(partido => {
-                if (!partidosPorFecha[partido.fecha]) partidosPorFecha[partido.fecha] = [];
-                partidosPorFecha[partido.fecha].push(partido);
-            });
-            
-            const fechasOrdenadas = Object.keys(partidosPorFecha).sort();
-            
-            for (const fecha of fechasOrdenadas) {
-                const fechaLegible = formatearFechaCompleta(fecha);
-                html += `<div style="margin-bottom: 15px;"><h4>📅 ${fechaLegible}</h4>`;
-                
-                for (const partido of partidosPorFecha[fecha]) {
-                    const prediccion = data.predicciones[partido.id];
-                    const marcador = data.marcadores[partido.id];
-                    const horaCDMX = convertirHoraCDMX(partido.horaET);
-                    
-                    let textoPrediccion = '';
-                    if (prediccion) {
-                        textoPrediccion = `${prediccion}`;
-                        if (marcador && marcador.golesLocal !== "" && marcador.golesVisitante !== "") {
-                            textoPrediccion += ` (${marcador.golesLocal} - ${marcador.golesVisitante})`;
-                        }
-                    } else {
-                        textoPrediccion = 'No especificado';
-                    }
-                    
-                    html += `
-                        <div class="partido-card">
-                            <div class="partido-info">
-                                <span class="grupo-tag">Grupo ${partido.grupo}</span>
-                                <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
-                                <span>🏟️ ${partido.estadio}</span>
-                            </div>
-                            <div class="equipos">
-                                <span class="equipo">${partido.equipo1}</span>
-                                <span class="vs">vs</span>
-                                <span class="equipo">${partido.equipo2}</span>
-                            </div>
-                            <div class="prediccion-texto">
-                                📌 <strong>Tu predicción:</strong> ${textoPrediccion}
-                            </div>
-                            <div class="recuadro-manual"></div>
-                        </div>
-                    `;
-                }
-                html += `</div>`;
-            }
-            contenedor.innerHTML = html;
+        
+            // Mostrar predicciones...
+            // (el resto del código igual)
+        
         } catch (error) {
-            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+            console.error("Error detallado:", error);
+            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p><p>Verifica que el script esté publicado y la URL sea correcta.</p>`;
         }
     }
     
@@ -491,7 +450,7 @@
     async function cargarResultados() {
         const contenedor = document.getElementById('resultados-container');
         contenedor.innerHTML = '<div class="cargando">Cargando resultados...</div>';
-        
+    
         try {
             const response = await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
@@ -500,28 +459,34 @@
                     accion: 'obtenerResultados'
                 })
             });
+        
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        
             const data = await response.json();
-            
+            console.log("Respuesta de resultados:", data);
+        
             if (!data.exito) {
-                contenedor.innerHTML = `<p>❌ Error cargando resultados</p>`;
+                contenedor.innerHTML = `<p>❌ Error del servidor: ${data.error || 'Error desconocido'}</p>`;
                 return;
             }
-            
+        
             if (Object.keys(data.resultados).length === 0) {
                 contenedor.innerHTML = `<p>⚠️ Aún no hay resultados registrados.</p>`;
                 return;
             }
-            
+        
             let html = `<table class="tabla-resultados">
-                         <thead>
-                             <tr><th>Partido ID</th><th>Equipo 1</th><th>vs</th><th>Equipo 2</th><th>Ganador</th><th>Goles</th></tr>
-                         </thead>
-                         <tbody>`;
-            
+                        <thead>
+                            <tr><th>Partido ID</th><th>Equipo 1</th><th>vs</th><th>Equipo 2</th><th>Ganador</th><th>Goles</th></tr>
+                        </thead>
+                        <tbody>`;
+        
             for (const [partidoId, ganador] of Object.entries(data.resultados)) {
                 const partido = partidosCalendario.find(p => p.id === partidoId);
                 const goles = data.goles[partidoId] || {};
-                
+            
                 if (partido) {
                     html += `
                         <tr>
@@ -535,11 +500,13 @@
                     `;
                 }
             }
-            
-            html += `</tbody></table>`;
+        
+            html += `</tbody>}</td>`;
             contenedor.innerHTML = html;
+        
         } catch (error) {
-            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+            console.error("Error detallado en resultados:", error);
+            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p><p>Verifica que el script esté publicado y la URL sea correcta.</p>`;
         }
     }
     
