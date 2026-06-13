@@ -263,6 +263,60 @@
                 letter-spacing: 1px;
             }
         }
+        /* Diseño responsivo para móviles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+    
+            h1 {
+                font-size: 1.5rem;
+            }
+    
+            .tab-btn {
+                padding: 8px 10px;
+                font-size: 0.7rem;
+            }
+    
+            .partido-card {
+                padding: 10px;
+            }
+    
+            .equipos {
+                flex-direction: column;
+                gap: 8px;
+            }
+    
+            .equipo:first-child {
+                justify-content: center;
+            }
+    
+            .vs {
+                margin: 5px 0;
+            }
+    
+            .partido-info {
+                flex-direction: column;
+                gap: 5px;
+            }
+    
+            .selector-familiar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+    
+            .selector-familiar select,
+            .selector-familiar button {
+                width: 100%;
+            }
+    
+            /* Scroll horizontal para tablas */
+            .tabla-resultados {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
     </style>
 </head>
 <body>
@@ -640,56 +694,72 @@
     async function cargarResultados() {
         const contenedor = document.getElementById('resultados-container');
         contenedor.innerHTML = '<div class="cargando">Cargando resultados...</div>';
-        
+    
         try {
             const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultados`;
             const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
             const data = await response.json();
-            
+        
             if (!data.exito) {
                 contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar los resultados'}</p>`;
                 return;
             }
-            
+        
             if (Object.keys(data.resultados).length === 0) {
                 contenedor.innerHTML = `<p>⚠️ Aún no hay resultados registrados.</p>`;
                 return;
             }
-            
-            let html = `<table class="tabla-resultados">
-                         <thead>
-                             <tr><th>Grupo</th><th>Equipo 1</th><th></th><th>Equipo 2</th><th>Ganador</th><th>Goles</th></tr>
-                         </thead>
-                         <tbody>`;
-            
+        
+            let html = `
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <table style="width: 100%; min-width: 500px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #1a472a; color: white;">
+                                <th style="padding: 12px; text-align: center;">Grupo</th>
+                                <th style="padding: 12px; text-align: left;">Equipo 1</th>
+                                <th style="padding: 12px; text-align: center;">vs</th>
+                                <th style="padding: 12px; text-align: left;">Equipo 2</th>
+                                <th style="padding: 12px; text-align: center;">Ganador</th>
+                                <th style="padding: 12px; text-align: center;">Goles</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+        
             for (const [partidoId, ganador] of Object.entries(data.resultados)) {
                 const partido = partidosCalendario.find(p => p.id === partidoId);
                 const goles = data.goles[partidoId] || {};
-                
+            
                 if (partido) {
                     html += `
-                        <tr>
-                            <td><strong>${partido.grupo}</strong></td
-                            <td><span class="fi fi-${paisCode[partido.equipo1] || ''}" style="margin-right: 5px;"></span>${partido.equipo1}</td
-                            <td>vs</td
-                            <td><span class="fi fi-${paisCode[partido.equipo2] || ''}" style="margin-right: 5px;"></span>${partido.equipo2}</td
-                            <td><strong>${ganador}</strong></td
-                            <td>${goles.golesLocal || 0} - ${goles.golesVisitante || 0}</td
+                        <tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px; text-align: center;"><strong>${partido.grupo}</strong></td>
+                            <td style="padding: 10px; text-align: left;">
+                                <span class="fi fi-${paisCode[partido.equipo1] || ''}" style="margin-right: 8px;"></span>
+                                ${partido.equipo1}
+                            </td>
+                            <td style="padding: 10px; text-align: center;">vs</td>
+                            <td style="padding: 10px; text-align: left;">
+                                <span class="fi fi-${paisCode[partido.equipo2] || ''}" style="margin-right: 8px;"></span>
+                                ${partido.equipo2}
+                            </td>
+                            <td style="padding: 10px; text-align: center;"><strong>${ganador}</strong></td>
+                            <td style="padding: 10px; text-align: center;">${goles.golesLocal || 0} - ${goles.golesVisitante || 0}</td>
                         </tr>
                     `;
                 }
             }
-            
-            html += `</tbody>}~`;
+        
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
             contenedor.innerHTML = html;
+        
         } catch (error) {
             console.error("Error:", error);
-            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p><p>Verifica que el script esté publicado y la URL sea correcta.</p>`;
+            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
         }
     }
 
@@ -713,17 +783,18 @@
             }
         
             let html = `
-                <table class="tabla-resultados">
-                    <thead>
-                        <tr>
-                            <th>🏅 Posición</th>
-                            <th>👤 Participante</th>
-                            <th>⭐ Puntos</th>
-                            <th>🎯 Aciertos (Ganador)</th>
-                            <th>🎯 Marcadores Exactos</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <table style="width: 100%; min-width: 400px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #1a472a; color: white;">
+                                <th style="padding: 12px; text-align: center;">🏅 Pos</th>
+                                <th style="padding: 12px; text-align: left;">👤 Participante</th>
+                                <th style="padding: 12px; text-align: center;">⭐ Pts</th>
+                                <th style="padding: 12px; text-align: center;">🎯 Aciertos</th>
+                                <th style="padding: 12px; text-align: center;">🎯 Marcadores</th>
+                            </table>
+                        </thead>
+                        <tbody>
             `;
         
             data.tabla.forEach((item, idx) => {
