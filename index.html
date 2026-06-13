@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Quiniela Mundial 2026</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: 'Poppins', sans-serif;
             background: #f0f2f5;
@@ -105,13 +104,22 @@
         }
         .equipo {
             flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         .equipo:first-child {
-            text-align: right;
+            justify-content: flex-end;
         }
         .vs {
             margin: 0 15px;
             color: #e74c3c;
+        }
+        .fi {
+            width: 1.2rem;
+            height: 0.9rem;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
         .prediccion-texto {
             background: #f8f9fa;
@@ -225,6 +233,20 @@
             padding: 40px;
             color: #666;
         }
+        
+        /* Colores por grupo en el calendario */
+        .grupo-tag-A { background: #E74C3C; }
+        .grupo-tag-B { background: #3498DB; }
+        .grupo-tag-C { background: #2ECC71; }
+        .grupo-tag-D { background: #F1C40F; }
+        .grupo-tag-E { background: #E67E22; }
+        .grupo-tag-F { background: #9B59B6; }
+        .grupo-tag-G { background: #1ABC9C; }
+        .grupo-tag-H { background: #E91E63; }
+        .grupo-tag-I { background: #00BCD4; }
+        .grupo-tag-J { background: #FF5722; }
+        .grupo-tag-K { background: #4CAF50; }
+        .grupo-tag-L { background: #FFC107; }
     </style>
 </head>
 <body>
@@ -276,12 +298,30 @@
 
 <script>
     // ========================
-    // CONFIGURACIÓN
+    // CONFIGURACIÓN - CAMBIA ESTA URL POR LA TUYA
     // ========================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxBX_JlOcFcxzFmB9_LgNciL8-LFE0eSwg1tmXTymdkwPCIlvStCTj8SU9FnP4dUaC8/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJaMqwdnAbYRbFEDbbbAQXAJngKbwYuo8sS-bRfbzpSyntIPOkoM60DQty5dcZq2ux/exec";
     
     // ========================
-    // PARTIDOS (72 partidos - copiados de tu index.html)
+    // DICCIONARIO DE BANDERAS
+    // ========================
+    const paisCode = {
+        'México': 'mx', 'Sudáfrica': 'za', 'Corea del Sur': 'kr', 'República Checa': 'cz',
+        'Canadá': 'ca', 'Bosnia y Herzegovina': 'ba', 'Catar': 'qa', 'Suiza': 'ch',
+        'Brasil': 'br', 'Marruecos': 'ma', 'Haití': 'ht', 'Escocia': 'gb-sct',
+        'EE.UU.': 'us', 'Paraguay': 'py', 'Australia': 'au', 'Turquía': 'tr',
+        'Alemania': 'de', 'Curazao': 'cw', 'Costa de Marfil': 'ci', 'Ecuador': 'ec',
+        'Países Bajos': 'nl', 'Japón': 'jp', 'Suecia': 'se', 'Túnez': 'tn',
+        'Bélgica': 'be', 'Egipto': 'eg', 'Irán': 'ir', 'Nueva Zelanda': 'nz',
+        'España': 'es', 'Cabo Verde': 'cv', 'Arabia Saudita': 'sa', 'Uruguay': 'uy',
+        'Francia': 'fr', 'Senegal': 'sn', 'Irak': 'iq', 'Noruega': 'no',
+        'Argentina': 'ar', 'Argelia': 'dz', 'Austria': 'at', 'Jordania': 'jo',
+        'Portugal': 'pt', 'RD Congo': 'cd', 'Uzbekistán': 'uz', 'Colombia': 'co',
+        'Inglaterra': 'gb', 'Croacia': 'hr', 'Ghana': 'gh', 'Panamá': 'pa'
+    };
+    
+    // ========================
+    // PARTIDOS COMPLETOS (72)
     // ========================
     const partidosCalendario = [
         { id: "1", grupo: "A", equipo1: "México", equipo2: "Sudáfrica", fecha: "2026-06-11", horaET: "15:00", estadio: "Estadio Ciudad de México" },
@@ -331,10 +371,36 @@
         { id: "45", grupo: "K", equipo1: "Portugal", equipo2: "Uzbekistán", fecha: "2026-06-23", horaET: "13:00", estadio: "Estadio Houston" },
         { id: "46", grupo: "L", equipo1: "Inglaterra", equipo2: "Ghana", fecha: "2026-06-23", horaET: "16:00", estadio: "Estadio Boston" },
         { id: "47", grupo: "L", equipo1: "Panamá", equipo2: "Croacia", fecha: "2026-06-23", horaET: "19:00", estadio: "Estadio Toronto" },
-        { id: "48", grupo: "K", equipo1: "Colombia", equipo2: "RD Congo", fecha: "2026-06-23", horaET: "22:00", estadio: "Estadio Guadalajara" }
+        { id: "48", grupo: "K", equipo1: "Colombia", equipo2: "RD Congo", fecha: "2026-06-23", horaET: "22:00", estadio: "Estadio Guadalajara" },
+        { id: "49", grupo: "B", equipo1: "Suiza", equipo2: "Canadá", fecha: "2026-06-24", horaET: "15:00", estadio: "Estadio BC Place Vancouver" },
+        { id: "50", grupo: "B", equipo1: "Bosnia y Herzegovina", equipo2: "Catar", fecha: "2026-06-24", horaET: "15:00", estadio: "Estadio Seattle" },
+        { id: "51", grupo: "C", equipo1: "Escocia", equipo2: "Brasil", fecha: "2026-06-24", horaET: "18:00", estadio: "Estadio Miami" },
+        { id: "52", grupo: "C", equipo1: "Marruecos", equipo2: "Haití", fecha: "2026-06-24", horaET: "18:00", estadio: "Estadio Atlanta" },
+        { id: "53", grupo: "A", equipo1: "República Checa", equipo2: "México", fecha: "2026-06-24", horaET: "21:00", estadio: "Estadio Ciudad de México" },
+        { id: "54", grupo: "A", equipo1: "Sudáfrica", equipo2: "Corea del Sur", fecha: "2026-06-24", horaET: "21:00", estadio: "Estadio Monterrey" },
+        { id: "55", grupo: "E", equipo1: "Curazao", equipo2: "Costa de Marfil", fecha: "2026-06-25", horaET: "16:00", estadio: "Estadio Filadelfia" },
+        { id: "56", grupo: "E", equipo1: "Ecuador", equipo2: "Alemania", fecha: "2026-06-25", horaET: "16:00", estadio: "Estadio Nueva York Nueva Jersey" },
+        { id: "57", grupo: "F", equipo1: "Japón", equipo2: "Suecia", fecha: "2026-06-25", horaET: "19:00", estadio: "Estadio Dallas" },
+        { id: "58", grupo: "F", equipo1: "Túnez", equipo2: "Países Bajos", fecha: "2026-06-25", horaET: "19:00", estadio: "Estadio Kansas City" },
+        { id: "59", grupo: "D", equipo1: "Turquía", equipo2: "EE.UU.", fecha: "2026-06-25", horaET: "22:00", estadio: "Estadio Los Ángeles" },
+        { id: "60", grupo: "D", equipo1: "Paraguay", equipo2: "Australia", fecha: "2026-06-25", horaET: "22:00", estadio: "Estadio Bahía de San Francisco" },
+        { id: "61", grupo: "I", equipo1: "Noruega", equipo2: "Francia", fecha: "2026-06-26", horaET: "15:00", estadio: "Estadio Boston" },
+        { id: "62", grupo: "I", equipo1: "Senegal", equipo2: "Irak", fecha: "2026-06-26", horaET: "15:00", estadio: "Estadio Toronto" },
+        { id: "63", grupo: "H", equipo1: "Cabo Verde", equipo2: "Arabia Saudita", fecha: "2026-06-26", horaET: "20:00", estadio: "Estadio Houston" },
+        { id: "64", grupo: "H", equipo1: "Uruguay", equipo2: "España", fecha: "2026-06-26", horaET: "20:00", estadio: "Estadio Guadalajara" },
+        { id: "65", grupo: "G", equipo1: "Egipto", equipo2: "Irán", fecha: "2026-06-26", horaET: "23:00", estadio: "Estadio Seattle" },
+        { id: "66", grupo: "G", equipo1: "Nueva Zelanda", equipo2: "Bélgica", fecha: "2026-06-26", horaET: "23:00", estadio: "Estadio BC Place Vancouver" },
+        { id: "67", grupo: "L", equipo1: "Panamá", equipo2: "Inglaterra", fecha: "2026-06-27", horaET: "17:00", estadio: "Estadio Nueva York Nueva Jersey" },
+        { id: "68", grupo: "L", equipo1: "Croacia", equipo2: "Ghana", fecha: "2026-06-27", horaET: "17:00", estadio: "Estadio Filadelfia" },
+        { id: "69", grupo: "K", equipo1: "Colombia", equipo2: "Portugal", fecha: "2026-06-27", horaET: "19:30", estadio: "Estadio Miami" },
+        { id: "70", grupo: "K", equipo1: "RD Congo", equipo2: "Uzbekistán", fecha: "2026-06-27", horaET: "19:30", estadio: "Estadio Atlanta" },
+        { id: "71", grupo: "J", equipo1: "Argelia", equipo2: "Austria", fecha: "2026-06-27", horaET: "22:00", estadio: "Estadio Kansas City" },
+        { id: "72", grupo: "J", equipo1: "Jordania", equipo2: "Argentina", fecha: "2026-06-27", horaET: "22:00", estadio: "Estadio Dallas" }
     ];
     
-    // Funciones auxiliares
+    // ========================
+    // FUNCIONES AUXILIARES
+    // ========================
     function convertirHoraCDMX(horaET) {
         let [hora, minuto] = horaET.split(':').map(Number);
         let horaCDMX = hora - 2;
@@ -360,12 +426,22 @@
             "2026-06-20": "Sábado 20 de junio",
             "2026-06-21": "Domingo 21 de junio",
             "2026-06-22": "Lunes 22 de junio",
-            "2026-06-23": "Martes 23 de junio"
+            "2026-06-23": "Martes 23 de junio",
+            "2026-06-24": "Miércoles 24 de junio",
+            "2026-06-25": "Jueves 25 de junio",
+            "2026-06-26": "Viernes 26 de junio",
+            "2026-06-27": "Sábado 27 de junio"
         };
         return mapa[fechaStr] || fechaStr;
     }
     
-    // Cargar calendario
+    function obtenerClaseGrupo(grupo) {
+        return `grupo-tag-${grupo}`;
+    }
+    
+    // ========================
+    // CALENDARIO
+    // ========================
     function cargarCalendario() {
         const contenedor = document.getElementById('calendario-container');
         contenedor.innerHTML = '';
@@ -385,17 +461,24 @@
             let htmlDia = `<div style="margin-bottom: 20px;"><h3>📅 ${fechaLegible}</h3>`;
             partidosDia.forEach(partido => {
                 const horaCDMX = convertirHoraCDMX(partido.horaET);
+                const claseGrupo = obtenerClaseGrupo(partido.grupo);
                 htmlDia += `
                     <div class="partido-card">
                         <div class="partido-info">
-                            <span class="grupo-tag">Grupo ${partido.grupo}</span>
+                            <span class="grupo-tag ${claseGrupo}">Grupo ${partido.grupo}</span>
                             <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
                             <span>🏟️ ${partido.estadio}</span>
                         </div>
                         <div class="equipos">
-                            <span class="equipo">${partido.equipo1}</span>
+                            <span class="equipo">
+                                ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                ${partido.equipo1}
+                            </span>
                             <span class="vs">vs</span>
-                            <span class="equipo">${partido.equipo2}</span>
+                            <span class="equipo">
+                                ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                ${partido.equipo2}
+                            </span>
                         </div>
                     </div>
                 `;
@@ -405,112 +488,159 @@
         });
     }
     
-    // Cargar predicciones de un familiar
+    // ========================
+    // PREDICCIONES (GET)
+    // ========================
     async function cargarPredicciones(nombre) {
         const contenedor = document.getElementById('predicciones-container');
         contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
-    
-        try {
-            const response = await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'obtenerPrediccionesDeUsuario',
-                    participante: nombre
-                })
-            });
         
+        try {
+            const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerPrediccionesDeUsuario&participante=${encodeURIComponent(nombre)}`;
+            const response = await fetch(url);
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-        
+            
             const data = await response.json();
-            console.log("Respuesta del script:", data);  // Para depurar
-        
+            
             if (!data.exito) {
-                contenedor.innerHTML = `<p>❌ Error del servidor: ${data.error || 'Error desconocido'}</p>`;
+                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las predicciones'}</p>`;
                 return;
             }
-        
+            
             if (Object.keys(data.predicciones).length === 0) {
                 contenedor.innerHTML = `<p>⚠️ ${nombre} aún no tiene predicciones guardadas.</p>`;
                 return;
             }
-        
-            // Mostrar predicciones...
-            // (el resto del código igual)
-        
+            
+            let html = `<p><strong>${nombre}</strong> - Predicciones registradas:</p>`;
+            
+            const partidosPorFecha = {};
+            partidosCalendario.forEach(partido => {
+                if (!partidosPorFecha[partido.fecha]) partidosPorFecha[partido.fecha] = [];
+                partidosPorFecha[partido.fecha].push(partido);
+            });
+            
+            const fechasOrdenadas = Object.keys(partidosPorFecha).sort();
+            
+            for (const fecha of fechasOrdenadas) {
+                const fechaLegible = formatearFechaCompleta(fecha);
+                html += `<div style="margin-bottom: 15px;"><h4>📅 ${fechaLegible}</h4>`;
+                
+                for (const partido of partidosPorFecha[fecha]) {
+                    const prediccion = data.predicciones[partido.id];
+                    const marcador = data.marcadores[partido.id];
+                    const horaCDMX = convertirHoraCDMX(partido.horaET);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    
+                    let textoPrediccion = '';
+                    if (prediccion) {
+                        textoPrediccion = `${prediccion}`;
+                        if (marcador && marcador.golesLocal !== "" && marcador.golesVisitante !== "") {
+                            textoPrediccion += ` (${marcador.golesLocal} - ${marcador.golesVisitante})`;
+                        }
+                    } else {
+                        textoPrediccion = 'No especificado';
+                    }
+                    
+                    html += `
+                        <div class="partido-card">
+                            <div class="partido-info">
+                                <span class="grupo-tag ${claseGrupo}">Grupo ${partido.grupo}</span>
+                                <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                                <span>🏟️ ${partido.estadio}</span>
+                            </div>
+                            <div class="equipos">
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                    ${partido.equipo1}
+                                </span>
+                                <span class="vs">vs</span>
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                    ${partido.equipo2}
+                                </span>
+                            </div>
+                            <div class="prediccion-texto">
+                                📌 <strong>Tu predicción:</strong> ${textoPrediccion}
+                            </div>
+                            <div class="recuadro-manual"></div>
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+            contenedor.innerHTML = html;
         } catch (error) {
-            console.error("Error detallado:", error);
+            console.error("Error:", error);
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p><p>Verifica que el script esté publicado y la URL sea correcta.</p>`;
         }
     }
     
-    // Cargar resultados reales
+    // ========================
+    // RESULTADOS (GET)
+    // ========================
     async function cargarResultados() {
         const contenedor = document.getElementById('resultados-container');
         contenedor.innerHTML = '<div class="cargando">Cargando resultados...</div>';
-    
-        try {
-            const response = await fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'obtenerResultados'
-                })
-            });
         
+        try {
+            const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultados`;
+            const response = await fetch(url);
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-        
+            
             const data = await response.json();
-            console.log("Respuesta de resultados:", data);
-        
+            
             if (!data.exito) {
-                contenedor.innerHTML = `<p>❌ Error del servidor: ${data.error || 'Error desconocido'}</p>`;
+                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar los resultados'}</p>`;
                 return;
             }
-        
+            
             if (Object.keys(data.resultados).length === 0) {
                 contenedor.innerHTML = `<p>⚠️ Aún no hay resultados registrados.</p>`;
                 return;
             }
-        
+            
             let html = `<table class="tabla-resultados">
-                        <thead>
-                            <tr><th>Partido ID</th><th>Equipo 1</th><th>vs</th><th>Equipo 2</th><th>Ganador</th><th>Goles</th></tr>
-                        </thead>
-                        <tbody>`;
-        
+                         <thead>
+                             <tr><th>Grupo</th><th>Equipo 1</th><th></th><th>Equipo 2</th><th>Ganador</th><th>Goles</th></tr>
+                         </thead>
+                         <tbody>`;
+            
             for (const [partidoId, ganador] of Object.entries(data.resultados)) {
                 const partido = partidosCalendario.find(p => p.id === partidoId);
                 const goles = data.goles[partidoId] || {};
-            
+                
                 if (partido) {
                     html += `
                         <tr>
-                            <td><strong>${partidoId}</strong></td>
-                            <td>${partido.equipo1}</td>
-                            <td>vs</td>
-                            <td>${partido.equipo2}</td>
-                            <td><strong>${ganador}</strong></td>
-                            <td>${goles.golesLocal || 0} - ${goles.golesVisitante || 0}</td>
+                            <td><strong>${partido.grupo}</strong></td
+                            <td><span class="fi fi-${paisCode[partido.equipo1] || ''}" style="margin-right: 5px;"></span>${partido.equipo1}</td
+                            <td>vs</td
+                            <td><span class="fi fi-${paisCode[partido.equipo2] || ''}" style="margin-right: 5px;"></span>${partido.equipo2}</td
+                            <td><strong>${ganador}</strong></td
+                            <td>${goles.golesLocal || 0} - ${goles.golesVisitante || 0}</td
                         </tr>
                     `;
                 }
             }
-        
-            html += `</tbody>}</td>`;
+            
+            html += `</tbody>}~`;
             contenedor.innerHTML = html;
-        
         } catch (error) {
-            console.error("Error detallado en resultados:", error);
+            console.error("Error:", error);
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p><p>Verifica que el script esté publicado y la URL sea correcta.</p>`;
         }
     }
     
-    // Navegación de pestañas
+    // ========================
+    // NAVEGACIÓN DE PESTAÑAS
+    // ========================
     function initTabs() {
         const tabs = ['calendario', 'predicciones', 'resultados'];
         tabs.forEach(tab => {
@@ -534,22 +664,27 @@
         });
     }
     
-    // Botón PDF
+    // ========================
+    // BOTÓN PDF
+    // ========================
     document.getElementById('btn-pdf').addEventListener('click', () => {
         const nombre = document.getElementById('selector-familiar-pred').value;
-        // Cambiar a pestaña predicciones y esperar a que cargue
         document.querySelector('.tab-btn[data-tab="predicciones"]').click();
         setTimeout(() => {
             window.print();
         }, 1000);
     });
     
-    // Selector de familiar
+    // ========================
+    // SELECTOR DE FAMILIAR
+    // ========================
     document.getElementById('selector-familiar-pred').addEventListener('change', (e) => {
         cargarPredicciones(e.target.value);
     });
     
-    // Inicializar
+    // ========================
+    // INICIALIZACIÓN
+    // ========================
     cargarCalendario();
     cargarPredicciones('Luis');
     cargarResultados();
