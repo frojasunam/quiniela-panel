@@ -711,16 +711,16 @@
             }
         
             let html = `
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <table style="width: 100%; min-width: 500px; border-collapse: collapse;">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-family: 'Poppins', sans-serif;">
                         <thead>
                             <tr style="background: #1a472a; color: white;">
-                                <th style="padding: 12px; text-align: center;">Grupo</th>
-                                <th style="padding: 12px; text-align: left;">Equipo 1</th>
-                                <th style="padding: 12px; text-align: center;">vs</th>
-                                <th style="padding: 12px; text-align: left;">Equipo 2</th>
-                                <th style="padding: 12px; text-align: center;">Ganador</th>
-                                <th style="padding: 12px; text-align: center;">Goles</th>
+                                <th style="padding: 10px; text-align: center;">Grupo</th>
+                                <th style="padding: 10px; text-align: left;">Equipo 1</th>
+                                <th style="padding: 10px; text-align: center;">vs</th>
+                                <th style="padding: 10px; text-align: left;">Equipo 2</th>
+                                <th style="padding: 10px; text-align: center;">Ganador</th>
+                                <th style="padding: 10px; text-align: center;">Goles</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -732,19 +732,19 @@
             
                 if (partido) {
                     html += `
-                        <tr style="border-bottom: 1px solid #ddd;">
-                            <td style="padding: 10px; text-align: center;"><strong>${partido.grupo}</strong></td>
-                            <td style="padding: 10px; text-align: left;">
-                                <span class="fi fi-${paisCode[partido.equipo1] || ''}" style="margin-right: 8px;"></span>
+                        <tr style="border-bottom: 1px solid #e0e0e0;">
+                            <td style="padding: 8px; text-align: center;"><strong>${partido.grupo}</strong></td>
+                            <td style="padding: 8px; text-align: left;">
+                                <span class="fi fi-${paisCode[partido.equipo1] || ''}" style="margin-right: 6px;"></span>
                                 ${partido.equipo1}
                             </td>
-                            <td style="padding: 10px; text-align: center;">vs</td>
-                            <td style="padding: 10px; text-align: left;">
-                                <span class="fi fi-${paisCode[partido.equipo2] || ''}" style="margin-right: 8px;"></span>
+                            <td style="padding: 8px; text-align: center;">vs</td>
+                            <td style="padding: 8px; text-align: left;">
+                                <span class="fi fi-${paisCode[partido.equipo2] || ''}" style="margin-right: 6px;"></span>
                                 ${partido.equipo2}
                             </td>
-                            <td style="padding: 10px; text-align: center;"><strong>${ganador}</strong></td>
-                            <td style="padding: 10px; text-align: center;">${goles.golesLocal || 0} - ${goles.golesVisitante || 0}</td>
+                            <td style="padding: 8px; text-align: center;"><strong>${ganador}</strong></td>
+                            <td style="padding: 8px; text-align: center;">${goles.golesLocal || 0} - ${goles.golesVisitante || 0}</td>
                         </tr>
                     `;
                 }
@@ -782,34 +782,43 @@
                 return;
             }
         
+            // Generar tabla con diseño limpio
             let html = `
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <table style="width: 100%; min-width: 400px; border-collapse: collapse;">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-family: 'Poppins', sans-serif;">
                         <thead>
                             <tr style="background: #1a472a; color: white;">
-                                <th style="padding: 12px; text-align: center;">🏅 Pos</th>
+                                <th style="padding: 12px; text-align: center; border-radius: 8px 0 0 0;">🏅 Pos.</th>
                                 <th style="padding: 12px; text-align: left;">👤 Participante</th>
-                                <th style="padding: 12px; text-align: center;">⭐ Pts</th>
+                                <th style="padding: 12px; text-align: center;">⭐ Puntos</th>
                                 <th style="padding: 12px; text-align: center;">🎯 Aciertos</th>
                                 <th style="padding: 12px; text-align: center;">🎯 Marcadores</th>
-                            </table>
+                            </tr>
                         </thead>
                         <tbody>
             `;
         
             data.tabla.forEach((item, idx) => {
+                const bgColor = idx === 0 ? '#fff8e1' : (idx === 1 ? '#f5f5f5' : (idx === 2 ? '#f5f5f5' : 'white'));
+                const posIcon = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}º`));
+            
                 html += `
-                    <tr style="${idx === 0 ? 'background: rgba(255,215,0,0.1);' : ''}">
-                        <td><strong>${idx + 1}º</strong></td>
-                        <td>${item.participante}</td>
-                        <td><strong>${item.puntos}</strong></td>
-                        <td>${item.aciertosGanador}</td>
-                        <td>${item.aciertosMarcador}</td>
+                    <tr style="border-bottom: 1px solid #e0e0e0; background: ${bgColor};">
+                        <td style="padding: 12px; text-align: center; font-weight: bold;">${posIcon}</td>
+                        <td style="padding: 12px; text-align: left;">${item.participante}</td>
+                        <td style="padding: 12px; text-align: center; font-weight: bold; color: #1a472a; font-size: 1.1rem;">${item.puntos}</td>
+                        <td style="padding: 12px; text-align: center;">${item.aciertosGanador}</td>
+                        <td style="padding: 12px; text-align: center;">${item.aciertosMarcador}</td>
                     </tr>
                 `;
             });
         
-            html += `</tbody></table>`;
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        
             contenedor.innerHTML = html;
         
         } catch (error) {
