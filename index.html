@@ -782,42 +782,45 @@
                 return;
             }
         
-            // Generar tabla con diseño limpio
-            let html = `
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; font-family: 'Poppins', sans-serif;">
-                        <thead>
-                            <tr style="background: #1a472a; color: white;">
-                                <th style="padding: 12px; text-align: center; border-radius: 8px 0 0 0;">🏅 Pos.</th>
-                                <th style="padding: 12px; text-align: left;">👤 Participante</th>
-                                <th style="padding: 12px; text-align: center;">⭐ Puntos</th>
-                                <th style="padding: 12px; text-align: center;">🎯 Aciertos</th>
-                                <th style="padding: 12px; text-align: center;">🎯 Marcadores</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
+            // Ver los datos en consola para depurar
+            console.log("Datos de la tabla:", data.tabla);
         
-            data.tabla.forEach((item, idx) => {
-                const bgColor = idx === 0 ? '#fff8e1' : (idx === 1 ? '#f5f5f5' : (idx === 2 ? '#f5f5f5' : 'white'));
-                const posIcon = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}º`));
+            // Generar tabla manualmente con estructura clara
+            let html = '<h3>📊 Tabla de Posiciones</h3>';
+            html += '<div style="overflow-x: auto;">';
+            html += '<table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">';
+            html += '<thead>';
+            html += '<tr style="background-color: #1a472a; color: white;">';
+            html += '<th style="padding: 10px; text-align: center;">Posición</th>';
+            html += '<th style="padding: 10px; text-align: left;">Participante</th>';
+            html += '<th style="padding: 10px; text-align: center;">Puntos</th>';
+            html += '<th style="padding: 10px; text-align: center;">Aciertos</th>';
+            html += '<th style="padding: 10px; text-align: center;">Marcadores Exactos</th>';
+            html += '</tr>';
+            html += '</thead>';
+            html += '<tbody>';
+        
+            // Recorrer cada participante y crear una fila por cada uno
+            for (let i = 0; i < data.tabla.length; i++) {
+                const item = data.tabla[i];
+                const posicion = i + 1;
+                let medalla = '';
+                if (posicion === 1) medalla = '🥇 ';
+                else if (posicion === 2) medalla = '🥈 ';
+                else if (posicion === 3) medalla = '🥉 ';
             
-                html += `
-                    <tr style="border-bottom: 1px solid #e0e0e0; background: ${bgColor};">
-                        <td style="padding: 12px; text-align: center; font-weight: bold;">${posIcon}</td>
-                        <td style="padding: 12px; text-align: left;">${item.participante}</td>
-                        <td style="padding: 12px; text-align: center; font-weight: bold; color: #1a472a; font-size: 1.1rem;">${item.puntos}</td>
-                        <td style="padding: 12px; text-align: center;">${item.aciertosGanador}</td>
-                        <td style="padding: 12px; text-align: center;">${item.aciertosMarcador}</td>
-                    </tr>
-                `;
-            });
+                html += '<tr style="border-bottom: 1px solid #ddd;">';
+                html += '<td style="padding: 10px; text-align: center;">' + medalla + posicion + 'º</td>';
+                html += '<td style="padding: 10px; text-align: left;">' + item.participante + '</td>';
+                html += '<td style="padding: 10px; text-align: center;"><strong>' + item.puntos + '</strong></td>';
+                html += '<td style="padding: 10px; text-align: center;">' + item.aciertosGanador + '</td>';
+                html += '<td style="padding: 10px; text-align: center;">' + item.aciertosMarcador + '</td>';
+                html += '</tr>';
+            }
         
-            html += `
-                        </tbody>
-                    </table>
-                </div>
-            `;
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
         
             contenedor.innerHTML = html;
         
