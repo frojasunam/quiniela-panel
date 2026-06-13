@@ -316,7 +316,7 @@
     // ========================
     // CONFIGURACIÓN - CAMBIA ESTA URL POR LA TUYA
     // ========================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRB27saDckxG2dH1shHZRiM6Iq_jmUlnNeZmB1WnJywn-yeBp0YuWhgUwCVkG7fWo8/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzKYT_hENFGk457EokvifSws3bAzkFDUqR0hba2nhzIgOWQRJxcspBnzNq8yNoGCgR1/exec";
     
     // ========================
     // DICCIONARIO DE BANDERAS
@@ -683,6 +683,60 @@
         } catch (error) {
             console.error("Error:", error);
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p><p>Verifica que el script esté publicado y la URL sea correcta.</p>`;
+        }
+    }
+
+    async function cargarTablaPosiciones() {
+        const contenedor = document.getElementById('posiciones-container');
+        contenedor.innerHTML = '<div class="cargando">Cargando tabla de posiciones...</div>';
+    
+        try {
+            const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerTablaPosiciones`;
+            const response = await fetch(url);
+            const data = await response.json();
+        
+            if (!data.exito) {
+                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudo cargar la tabla'}</p>`;
+                return;
+            }
+        
+            if (data.tabla.length === 0) {
+                contenedor.innerHTML = `<p>⚠️ No hay datos suficientes para mostrar la tabla.</p>`;
+                return;
+            }
+        
+            let html = `
+                <table class="tabla-resultados">
+                    <thead>
+                        <tr>
+                            <th>🏅 Posición</th>
+                            <th>👤 Participante</th>
+                            <th>⭐ Puntos</th>
+                            <th>🎯 Aciertos (Ganador)</th>
+                            <th>🎯 Marcadores Exactos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+        
+            data.tabla.forEach((item, idx) => {
+                html += `
+                    <tr style="${idx === 0 ? 'background: rgba(255,215,0,0.1);' : ''}">
+                        <td><strong>${idx + 1}º</strong></td>
+                        <td>${item.participante}</td>
+                        <td><strong>${item.puntos}</strong></td>
+                        <td>${item.aciertosGanador}</td>
+                        <td>${item.aciertosMarcador}</td>
+                    </tr>
+                `;
+            });
+        
+            html += `</tbody></table>`;
+            contenedor.innerHTML = html;
+        
+        } catch (error) {
+            console.error("Error:", error);
+            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
         }
     }
     
