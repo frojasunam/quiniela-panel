@@ -1293,52 +1293,52 @@
     async function cargarPosicionesGrupos() {
         const contenedor = document.getElementById('posiciones-grupos-container');
         contenedor.innerHTML = '<div class="cargando">Cargando posiciones de grupos...</div>';
-    
+        
         try {
             const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerPosicionesGrupos`;
             const response = await fetch(url);
             const data = await response.json();
-        
+            
             if (!data.exito) {
                 contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las posiciones'}</p>`;
                 return;
             }
-        
+            
             const resultados = data.resultados || {};
-        
+            
             // Inicializar estadísticas por grupo
             const grupos = {};
             for (let i = 65; i <= 76; i++) {
                 const letra = String.fromCharCode(i);
                 grupos[letra] = {};
             }
-        
+            
             // Procesar cada partido con resultado
             for (const partido of partidosCalendario) {
                 const resultado = resultados[partido.id];
                 if (!resultado) continue;
-            
+                
                 const grupo = partido.grupo;
                 const eq1 = partido.equipo1;
                 const eq2 = partido.equipo2;
-            
+                
                 if (!grupos[grupo][eq1]) {
                     grupos[grupo][eq1] = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
                 }
                 if (!grupos[grupo][eq2]) {
                     grupos[grupo][eq2] = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
                 }
-            
+                
                 const g1 = parseInt(resultado.golesLocal) || 0;
                 const g2 = parseInt(resultado.golesVisitante) || 0;
-            
+                
                 grupos[grupo][eq1].pj++;
                 grupos[grupo][eq2].pj++;
                 grupos[grupo][eq1].gf += g1;
                 grupos[grupo][eq1].gc += g2;
                 grupos[grupo][eq2].gf += g2;
                 grupos[grupo][eq2].gc += g1;
-            
+                
                 if (resultado.ganador === eq1) {
                     grupos[grupo][eq1].pg++;
                     grupos[grupo][eq1].pts += 3;
@@ -1354,9 +1354,6 @@
                     grupos[grupo][eq2].pts += 1;
                 }
             }
-        
-            // Generar HTML
-            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
             
             // Colores por grupo
             const coloresGrupos = {
@@ -1364,67 +1361,75 @@
                 'E': '#E67E22', 'F': '#9B59B6', 'G': '#1ABC9C', 'H': '#E91E63',
                 'I': '#00BCD4', 'J': '#FF5722', 'K': '#4CAF50', 'L': '#FFC107'
             };
-
+            
+            let htmlTotal = '';
+            
             for (let i = 65; i <= 76; i++) {
                 const letra = String.fromCharCode(i);
                 const equipos = grupos[letra];
                 const equiposArray = Object.entries(equipos);
-            
+                
                 if (equiposArray.length === 0) continue;
-            
+                
                 equiposArray.sort((a, b) => b[1].pts - a[1].pts);
-            
+                
+                // Construir tarjeta del grupo
                 let htmlGrupo = `
-                    <div style="background: rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); margin: 0 auto 20px auto; max-width: 400px; width: 100%;">
-                        <div style="background: ${coloresGrupos[letra] || '#1a472a'}; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 1rem; letter-spacing: 1px;">
+                    <div class="grupo-card">
+                        <div class="grupo-card-header" style="background: ${coloresGrupos[letra] || '#1a472a'};">
                             Grupo ${letra}
                         </div>
-                        <div style="overflow-x: auto; padding: 8px;">
-                            <table style="width: 100%; font-size: 0.75rem; border-collapse: collapse; margin: 0 auto;">
+                        <div class="grupo-card-body">
+                            <table>
                                 <thead>
-                                    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
-                                        <th style="text-align: center; padding: 6px 4px;">#</th>
-                                        <th style="text-align: left; padding: 6px 4px;">Equipo</th>
-                                        <th style="text-align: center; padding: 6px 4px;">PJ</th>
-                                        <th style="text-align: center; padding: 6px 4px;">G</th>
-                                        <th style="text-align: center; padding: 6px 4px;">E</th>
-                                        <th style="text-align: center; padding: 6px 4px;">P</th>
-                                        <th style="text-align: center; padding: 6px 4px;">DG</th>
-                                        <th style="text-align: center; padding: 6px 4px;">PTS</th>
+                                    <tr>
+                                        <th>#</th>
+                                        <th style="text-align: left;">Equipo</th>
+                                        <th>PJ</th>
+                                        <th>G</th>
+                                        <th>E</th>
+                                        <th>P</th>
+                                        <th>DG</th>
+                                        <th>PTS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                 `;
-
+                
                 equiposArray.forEach(([equipo, stats], idx) => {
                     const dif = stats.gf - stats.gc;
-                    const bgColor = idx === 0 ? 'rgba(255,215,0,0.1)' : (idx === 1 ? 'rgba(255,255,255,0.03)' : (idx === 2 ? 'rgba(255,255,255,0.02)' : ''));
+                    const posClass = idx === 0 ? 'pos-1' : (idx === 1 ? 'pos-2' : (idx === 2 ? 'pos-3' : ''));
                     htmlGrupo += `
-                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); background: ${bgColor};">
-                            <td style="text-align: center; padding: 5px 4px; font-weight: bold;">${idx + 1}</td>
-                            <td style="text-align: left; padding: 5px 4px; font-size: 0.7rem;">${equipo}</td>
-                            <td style="text-align: center; padding: 5px 4px;">${stats.pj}</td>
-                            <td style="text-align: center; padding: 5px 4px;">${stats.pg}</td>
-                            <td style="text-align: center; padding: 5px 4px;">${stats.pe}</td>
-                            <td style="text-align: center; padding: 5px 4px;">${stats.pp}</td>
-                            <td style="text-align: center; padding: 5px 4px;">${dif > 0 ? '+' : ''}${dif}</td>
-                            <td style="text-align: center; padding: 5px 4px; font-weight: bold; color: #ffd700;">${stats.pts}</td>
+                        <tr class="${posClass}">
+                            <td>${idx + 1}</td>
+                            <td class="equipo-nombre">${equipo}</td>
+                            <td>${stats.pj}</td>
+                            <td>${stats.pg}</td>
+                            <td>${stats.pe}</td>
+                            <td>${stats.pp}</td>
+                            <td>${dif > 0 ? '+' : ''}${dif}</td>
+                            <td class="puntos">${stats.pts}</td>
                         </tr>
                     `;
                 });
-
+                
                 htmlGrupo += `
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 `;
-            
+                
+                htmlTotal += htmlGrupo;
             }
-        
-            html += '</div>';
-            contenedor.innerHTML = html;
-        
+            
+            if (htmlTotal === '') {
+                contenedor.innerHTML = `<p>⚠️ No hay datos de posiciones de grupos disponibles.</p>`;
+                return;
+            }
+            
+            contenedor.innerHTML = htmlTotal;
+            
         } catch (error) {
             console.error("Error:", error);
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
