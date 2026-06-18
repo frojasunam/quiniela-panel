@@ -731,7 +731,7 @@
                 scroll-margin-top: 150px;
             }
         }
-        
+
     </style>
 </head>
 <body>
@@ -977,6 +977,8 @@
     function cargarCalendario() {
         const contenedor = document.getElementById('calendario-container');
         contenedor.innerHTML = '';
+        // Espaciador para que no se tape con los elementos fijos
+        contenedor.innerHTML = '<div style="height: 130px; width: 100%;"></div>';
         
         const partidosPorFecha = {};
         partidosCalendario.forEach(partido => {
@@ -1046,7 +1048,7 @@
     // ========================
     async function cargarPredicciones(nombre) {
         const contenedor = document.getElementById('predicciones-container');
-        contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
+        contenedor.innerHTML = '<div style="height: 130px; width: 100%;"></div><div class="cargando">Cargando predicciones...</div>';
     
         try {
             const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerPrediccionesDeUsuario&participante=${encodeURIComponent(nombre)}`;
@@ -1157,7 +1159,7 @@
                 }
                 html += `</div>`;
             }
-            contenedor.innerHTML = html;
+            contenedor.innerHTML = '<div style="height: 130px; width: 100%;"></div>' + html;
 
             // Al final de la función, después de contenedor.innerHTML = html;
             // Posicionar en la fecha actual
