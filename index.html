@@ -121,13 +121,13 @@
         }
 
         .grupo-tag {
-            background: linear-gradient(135deg, #1a472a, #0d2818);
-            color: #ffd700;
+            background: transparent;
+            color: #ffffff;
             padding: 2px 12px;
             border-radius: 20px;
             font-weight: bold;
             font-size: 0.7rem;
-            border: 1px solid rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .equipos {
@@ -298,6 +298,44 @@
         .grupo-tag-K { background: #4CAF50; }
         .grupo-tag-L { background: #FFC107; }
 
+        /* Estilo para fechas del calendario */
+        .dia-bloque {
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .dia-header {
+            background: linear-gradient(135deg, #0d2818, #1a472a);
+            color: #ffd700;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border-bottom: 2px solid rgba(255,215,0,0.2);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .dia-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ffd700;
+        }
+
+        .partidos-count {
+            background: rgba(255,215,0,0.15);
+            color: #ffd700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,215,0,0.1);
+        }
+
         @media print {
             .fi {
                 display: inline-block;
@@ -366,6 +404,30 @@
                 overflow-x: auto;
                 white-space: nowrap;
             }
+
+            /* Ajuste de predicciones en móvil */
+            .prediccion-marcador {
+                padding: 8px 10px;
+                border-radius: 30px;
+                font-size: 0.8rem;
+            }
+            .prediccion-marcador .equipo-nombre {
+                font-size: 0.75rem;
+                max-width: 80px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+        }
+
+        /* Estilo general para marcadores de predicciones */
+        .prediccion-marcador {
+            background: linear-gradient(135deg, #1a472a, #0d2818);
+            border-radius: 60px;
+            padding: 10px 15px;
+            margin-top: 8px;
+            overflow: hidden;
+            word-wrap: break-word;
         }
 
         /* Colores para logros */
@@ -373,6 +435,32 @@
         .logro-plata { color: #C0C0C0; }
         .logro-oro { color: #FFD700; }
         .logro-unico { color: #9B59B6; }
+
+        /* Estilos para posiciones de grupos */
+        .posiciones-grupos-container {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .posiciones-grupos-container .grupo-card {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .posiciones-grupos-container {
+                padding: 5px;
+            }
+            .posiciones-grupos-container table {
+                font-size: 0.7rem;
+            }
+            .posiciones-grupos-container th,
+            .posiciones-grupos-container td {
+                padding: 6px 4px;
+            }
+        }
 
     </style>
 </head>
