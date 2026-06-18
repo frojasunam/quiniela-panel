@@ -710,7 +710,28 @@
             .grupo-card-body table {
                 min-width: 200px;
             }
+        
         }
+
+        /* ========================
+        ESPACIO SUPERIOR PARA CONTENEDORES DE CALENDARIO Y PREDICCIONES
+        ======================== */
+
+        #calendario-container,
+        #predicciones-container {
+            padding-top: 20px;
+            scroll-margin-top: 130px;
+        }
+
+        /* Para móviles */
+        @media (max-width: 600px) {
+            #calendario-container,
+            #predicciones-container {
+                padding-top: 10px;
+                scroll-margin-top: 150px;
+            }
+        }
+        
     </style>
 </head>
 <body>
