@@ -1207,18 +1207,18 @@
                             <span class="grupo-tag ${claseGrupo}" style="font-size: 0.7rem;">Grupo ${partido.grupo}</span>
                             <span style="color: #8a9ba8; font-size: 0.7rem;">📅 ${fechaLegible}</span>
                         </div>
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
-                            <span style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 30px;">
-                                <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem;">${goles.golesLocal || 0}</span>
-                                <span style="color: white; font-size: 0.8rem;">${partido.equipo1}</span>
-                                ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px;"></span>` : ''}
-                            </span>
-                            <span style="color: white; font-weight: bold; font-size: 0.7rem;">VS</span>
-                            <span style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 30px;">
-                                ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px;"></span>` : ''}
-                                <span style="color: white; font-size: 0.8rem;">${partido.equipo2}</span>
-                                <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem;">${goles.golesVisitante || 0}</span>
-                            </span>
+                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; margin-top: 4px;">
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; overflow: hidden;">
+                                <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${goles.golesLocal || 0}</span>
+                                <span style="color: white; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${partido.equipo1}</span>
+                                ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px; flex-shrink: 0;"></span>` : ''}
+                            </div>
+                            <span style="color: white; font-weight: bold; font-size: 0.7rem; text-align: center;">VS</span>
+                            <div style="display: flex; align-items: center; justify-content: flex-start; gap: 4px; overflow: hidden;">
+                                ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px; flex-shrink: 0;"></span>` : ''}
+                                <span style="color: white; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${partido.equipo2}</span>
+                                <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${goles.golesVisitante || 0}</span>
+                            </div>
                         </div>
                         <div style="text-align: center; color: #ff4444; font-size: 0.7rem; margin-top: 6px;">🏆 Ganador: ${item.ganador}</div>
                     </div>
