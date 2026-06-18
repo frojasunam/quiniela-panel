@@ -1007,8 +1007,8 @@
     // NAVEGACIÓN DE PESTAÑAS
     // ========================
     function initTabs() {
-        const tabs = ['calendario', 'predicciones', 'resultados', 'posiciones'];
-    
+        const tabs = ['calendario', 'predicciones', 'resultados', 'posiciones', 'posiciones-grupos'];
+
         tabs.forEach(tab => {
             const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
             if (btn) {
@@ -1026,6 +1026,8 @@
                         cargarResultados();
                     } else if (tab === 'posiciones') {
                         cargarTablaPosiciones();
+                    } else if (tab === 'posiciones-grupos') {
+                        cargarPosicionesGrupos();
                     }
                 });
             }
