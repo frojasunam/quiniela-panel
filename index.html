@@ -330,6 +330,7 @@
         <button class="tab-btn" data-tab="predicciones">📋 Predicciones</button>
         <button class="tab-btn" data-tab="resultados">🏆 Resultados</button>
         <button class="tab-btn" data-tab="posiciones">📊 Tabla de Posiciones</button>
+        <button class="tab-btn" data-tab="posiciones-grupos">📊 Posiciones de Grupos</button>
     </div>
     
     <!-- Pestaña Calendario -->
@@ -368,6 +369,11 @@
     <div id="posiciones" class="tab-content">
         <h2>📊 Tabla de Posiciones</h2>
         <div id="posiciones-container" class="cargando">Cargando tabla de posiciones...</div>
+    </div>
+
+    <div id="posiciones-grupos" class="tab-content">
+        <h2>📊 Posiciones de Grupos</h2>
+        <div id="posiciones-grupos-container" class="cargando">Cargando posiciones...</div>
     </div>
     
     <footer>
@@ -605,7 +611,7 @@
         
             for (const fecha of fechasOrdenadas) {
                 const fechaLegible = formatearFechaCompleta(fecha);
-                html += `<div style="margin-bottom: 25px;"><h3 style="color: #1a472a; border-left: 4px solid #1a472a; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
+                html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #1a472a; border-left: 4px solid #1a472a; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
             
                 for (const partido of partidosPorFecha[fecha]) {
                     const partidoId = String(partido.id); // Asegurar string
@@ -684,6 +690,29 @@
                 html += `</div>`;
             }
             contenedor.innerHTML = html;
+
+            // Al final de la función, después de contenedor.innerHTML = html;
+            // Posicionar en la fecha actual
+            const hoy = new Date().toISOString().slice(0, 10); // "2026-06-18"
+            const fechas = Object.keys(partidosPorFecha).sort();
+            let fechaMasCercana = fechas[0];
+
+            // Buscar la fecha más cercana a hoy (hacia adelante)
+            for (const fecha of fechas) {
+                if (fecha >= hoy) {
+                    fechaMasCercana = fecha;
+                    break;
+                }
+            }
+
+            // Posicionar el scroll en el día correspondiente
+            setTimeout(() => {
+                const contenedor = document.getElementById('predicciones-container');
+                const diaElemento = contenedor.querySelector(`[data-fecha="${fechaMasCercana}"]`);
+                if (diaElemento) {
+                    diaElemento.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 300);
         
         } catch (error) {
             console.error("Error:", error);
@@ -798,6 +827,7 @@
             html += '<th style="padding: 10px; text-align: center;">Puntos</th>';
             html += '<th style="padding: 10px; text-align: center;">Aciertos</th>';
             html += '<th style="padding: 10px; text-align: center;">Marcadores Exactos</th>';
+            html += '<th style="padding: 10px; text-align: center;">🏅 Logros</th>';
             html += '</tr>';
             html += '</thead>';
             html += '<tbody>';
@@ -806,6 +836,14 @@
             for (let i = 0; i < data.tabla.length; i++) {
                 const item = data.tabla[i];
                 const posicion = i + 1;
+                // Calcular logros del participante
+                const logros = [];
+                if (item.puntos >= 10) logros.push('🏅');
+                if (item.aciertosMarcador >= 3) logros.push('🎯');
+                if (item.aciertosGanador >= 8) logros.push('⚡');
+                if (item.aciertosGanador >= 5 && item.aciertosMarcador >= 1) logros.push('🌟');
+                const logrosStr = logros.length > 0 ? logros.join(' ') : '—';
+
                 let medalla = '';
                 if (posicion === 1) medalla = '🥇 ';
                 else if (posicion === 2) medalla = '🥈 ';
@@ -817,6 +855,7 @@
                 html += '<td style="padding: 10px; text-align: center;"><strong>' + item.puntos + '</strong></td>';
                 html += '<td style="padding: 10px; text-align: center;">' + item.aciertosGanador + '</td>';
                 html += '<td style="padding: 10px; text-align: center;">' + item.aciertosMarcador + '</td>';
+                html += '<td style="padding: 10px; text-align: center; font-size: 1.2rem;">' + logrosStr + '</td>';
                 html += '</tr>';
             }
         
@@ -824,6 +863,138 @@
             html += '</table>';
             html += '</div>';
         
+            contenedor.innerHTML = html;
+        
+        } catch (error) {
+            console.error("Error:", error);
+            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+        }
+    }
+
+    async function cargarPosicionesGrupos() {
+        const contenedor = document.getElementById('posiciones-grupos-container');
+        contenedor.innerHTML = '<div class="cargando">Cargando posiciones de grupos...</div>';
+    
+        try {
+            const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerPosicionesGrupos`;
+            const response = await fetch(url);
+            const data = await response.json();
+        
+            if (!data.exito) {
+                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las posiciones'}</p>`;
+                return;
+            }
+        
+            const resultados = data.resultados || {};
+        
+            // Inicializar estadísticas por grupo
+            const grupos = {};
+            for (let i = 65; i <= 76; i++) {
+                const letra = String.fromCharCode(i);
+                grupos[letra] = {};
+            }
+        
+            // Procesar cada partido con resultado
+            for (const partido of partidosCalendario) {
+                const resultado = resultados[partido.id];
+                if (!resultado) continue;
+            
+                const grupo = partido.grupo;
+                const eq1 = partido.equipo1;
+                const eq2 = partido.equipo2;
+            
+                if (!grupos[grupo][eq1]) {
+                    grupos[grupo][eq1] = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
+                }
+                if (!grupos[grupo][eq2]) {
+                    grupos[grupo][eq2] = { pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 };
+                }
+            
+                const g1 = parseInt(resultado.golesLocal) || 0;
+                const g2 = parseInt(resultado.golesVisitante) || 0;
+            
+                grupos[grupo][eq1].pj++;
+                grupos[grupo][eq2].pj++;
+                grupos[grupo][eq1].gf += g1;
+                grupos[grupo][eq1].gc += g2;
+                grupos[grupo][eq2].gf += g2;
+                grupos[grupo][eq2].gc += g1;
+            
+                if (resultado.ganador === eq1) {
+                    grupos[grupo][eq1].pg++;
+                    grupos[grupo][eq1].pts += 3;
+                    grupos[grupo][eq2].pp++;
+                } else if (resultado.ganador === eq2) {
+                    grupos[grupo][eq2].pg++;
+                    grupos[grupo][eq2].pts += 3;
+                    grupos[grupo][eq1].pp++;
+                } else if (resultado.ganador === "Empate") {
+                    grupos[grupo][eq1].pe++;
+                    grupos[grupo][eq1].pts += 1;
+                    grupos[grupo][eq2].pe++;
+                    grupos[grupo][eq2].pts += 1;
+                }
+            }
+        
+            // Generar HTML
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
+        
+            for (let i = 65; i <= 76; i++) {
+                const letra = String.fromCharCode(i);
+                const equipos = grupos[letra];
+                const equiposArray = Object.entries(equipos);
+            
+                if (equiposArray.length === 0) continue;
+            
+                equiposArray.sort((a, b) => b[1].pts - a[1].pts);
+            
+                let htmlGrupo = `
+                    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="background: #1a472a; color: white; padding: 10px; text-align: center; font-weight: bold;">Grupo ${letra}</div>
+                        <div style="overflow-x: auto; padding: 10px;">
+                            <table style="width: 100%; font-size: 0.8rem; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #ddd;">
+                                        <th style="text-align: center;">#</th>
+                                        <th style="text-align: left;">Equipo</th>
+                                        <th style="text-align: center;">PJ</th>
+                                        <th style="text-align: center;">G</th>
+                                        <th style="text-align: center;">E</th>
+                                        <th style="text-align: center;">P</th>
+                                        <th style="text-align: center;">DG</th>
+                                        <th style="text-align: center;">PTS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+            
+                equiposArray.forEach(([equipo, stats], idx) => {
+                    const dif = stats.gf - stats.gc;
+                    const bgColor = idx === 0 ? '#e8f5e9' : (idx === 1 ? '#e3f2fd' : (idx === 2 ? '#fff3e0' : ''));
+                    htmlGrupo += `
+                        <tr style="border-bottom: 1px solid #eee; background: ${bgColor};">
+                            <td style="text-align: center;">${idx + 1}</td>
+                            <td style="text-align: left;">${equipo}</td>
+                            <td style="text-align: center;">${stats.pj}</td>
+                            <td style="text-align: center;">${stats.pg}</td>
+                            <td style="text-align: center;">${stats.pe}</td>
+                            <td style="text-align: center;">${stats.pp}</td>
+                            <td style="text-align: center;">${dif > 0 ? '+' : ''}${dif}</td>
+                            <td style="text-align: center;"><strong>${stats.pts}</strong></td>
+                        </tr>
+                    `;
+                });
+            
+                htmlGrupo += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                html += htmlGrupo;
+            }
+        
+            html += '</div>';
             contenedor.innerHTML = html;
         
         } catch (error) {
