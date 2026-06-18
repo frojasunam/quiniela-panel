@@ -948,7 +948,8 @@
             const fechaLegible = formatearFechaCompleta(fecha);
             const partidosDia = partidosPorFecha[fecha];
             
-            let htmlDia = `<div style="margin-bottom: 20px;"><h3>📅 ${fechaLegible}</h3>`;
+            // AGREGAR data-fecha para poder posicionar el scroll
+            let htmlDia = `<div data-fecha="${fecha}" style="margin-bottom: 20px;"><h3>📅 ${fechaLegible}</h3>`;
             partidosDia.forEach(partido => {
                 const horaCDMX = convertirHoraCDMX(partido.horaET);
                 const claseGrupo = obtenerClaseGrupo(partido.grupo);
@@ -976,8 +977,28 @@
             htmlDia += `</div>`;
             contenedor.innerHTML += htmlDia;
         });
-    }
-    
+        
+        // ========== NUEVO: Posicionar en la fecha actual ==========
+        setTimeout(() => {
+            const hoy = new Date().toISOString().slice(0, 10);
+            const fechas = Object.keys(partidosPorFecha).sort();
+            let fechaMasCercana = fechas[0];
+            
+            for (const fecha of fechas) {
+                if (fecha >= hoy) {
+                    fechaMasCercana = fecha;
+                    break;
+                }
+            }
+            
+            const contenedor = document.getElementById('calendario-container');
+            const diaElemento = contenedor.querySelector(`[data-fecha="${fechaMasCercana}"]`);
+            if (diaElemento) {
+                diaElemento.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 300);
+        // ============================================================
+    }    
     // ========================
     // PREDICCIONES (GET)
     // ========================
@@ -1130,69 +1151,90 @@
     async function cargarResultados() {
         const contenedor = document.getElementById('resultados-container');
         contenedor.innerHTML = '<div class="cargando">Cargando resultados...</div>';
-    
+        
         try {
             const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultados`;
             const response = await fetch(url);
             const data = await response.json();
-        
+            
             if (!data.exito) {
                 contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar los resultados'}</p>`;
                 return;
             }
-        
+            
             if (Object.keys(data.resultados).length === 0) {
                 contenedor.innerHTML = `<p>⚠️ Aún no hay resultados registrados.</p>`;
                 return;
             }
-        
+            
+            // Crear array con resultados y ordenar por fecha
+            const resultadosArray = [];
+            for (const [partidoId, ganador] of Object.entries(data.resultados)) {
+                const partido = partidosCalendario.find(p => p.id === partidoId);
+                if (partido) {
+                    resultadosArray.push({
+                        id: partidoId,
+                        partido: partido,
+                        ganador: ganador,
+                        goles: data.goles[partidoId] || {}
+                    });
+                }
+            }
+            
+            // Ordenar por fecha (más reciente primero)
+            resultadosArray.sort((a, b) => b.partido.fecha.localeCompare(a.partido.fecha));
+            
             let html = `
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; font-family: 'Poppins', sans-serif;">
                         <thead>
                             <tr style="background: #1a472a; color: white;">
+                                <th style="padding: 10px; text-align: center;">📅 Fecha</th>
                                 <th style="padding: 10px; text-align: center;">Grupo</th>
-                                <th style="padding: 10px; text-align: left;">Equipo 1</th>
-                                <th style="padding: 10px; text-align: center;">vs</th>
-                                <th style="padding: 10px; text-align: left;">Equipo 2</th>
-                                <th style="padding: 10px; text-align: center;">Ganador</th>
-                                <th style="padding: 10px; text-align: center;">Goles</th>
+                                <th style="padding: 10px; text-align: center;" colspan="3">Resultado Real</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
-        
-            for (const [partidoId, ganador] of Object.entries(data.resultados)) {
-                const partido = partidosCalendario.find(p => p.id === partidoId);
-                const goles = data.goles[partidoId] || {};
             
-                if (partido) {
-                    html += `
-                        <tr style="border-bottom: 1px solid #e0e0e0;">
-                            <td style="padding: 8px; text-align: center;"><strong>${partido.grupo}</strong></td>
-                            <td style="padding: 8px; text-align: left;">
-                                <span class="fi fi-${paisCode[partido.equipo1] || ''}" style="margin-right: 6px;"></span>
-                                ${partido.equipo1}
-                            </td>
-                            <td style="padding: 8px; text-align: center;">vs</td>
-                            <td style="padding: 8px; text-align: left;">
-                                <span class="fi fi-${paisCode[partido.equipo2] || ''}" style="margin-right: 6px;"></span>
-                                ${partido.equipo2}
-                            </td>
-                            <td style="padding: 8px; text-align: center;"><strong>${ganador}</strong></td>
-                            <td style="padding: 8px; text-align: center;">${goles.golesLocal || 0} - ${goles.golesVisitante || 0}</td>
-                        </tr>
-                    `;
-                }
+            for (const item of resultadosArray) {
+                const partido = item.partido;
+                const goles = item.goles;
+                const fechaLegible = formatearFechaCompleta(partido.fecha);
+                
+                html += `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding: 10px; text-align: center; color: #8a9ba8; font-size: 0.75rem;">${fechaLegible}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span class="grupo-tag ${obtenerClaseGrupo(partido.grupo)}" style="font-size: 0.7rem;">Grupo ${partido.grupo}</span>
+                        </td>
+                        <td style="padding: 10px; text-align: center;" colspan="3">
+                            <div style="background: linear-gradient(135deg, #4a0a0a, #2a0505); border-radius: 60px; padding: 8px 12px; display: inline-block; min-width: 200px; border: 1px solid rgba(255,0,0,0.2);">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
+                                    <span style="display: flex; align-items: center; gap: 4px; background: rgba(255,0,0,0.1); padding: 2px 10px; border-radius: 30px;">
+                                        <span style="background: rgba(255,0,0,0.2); padding: 2px 8px; border-radius: 20px; color: #ff6b6b; font-weight: bold; font-size: 0.9rem;">${goles.golesLocal || 0}</span>
+                                        <span style="color: #ccc; font-size: 0.75rem;">${partido.equipo1}</span>
+                                    </span>
+                                    <span style="color: #ff6b6b; font-weight: bold; font-size: 0.7rem;">VS</span>
+                                    <span style="display: flex; align-items: center; gap: 4px; background: rgba(255,0,0,0.1); padding: 2px 10px; border-radius: 30px;">
+                                        <span style="color: #ccc; font-size: 0.75rem;">${partido.equipo2}</span>
+                                        <span style="background: rgba(255,0,0,0.2); padding: 2px 8px; border-radius: 20px; color: #ff6b6b; font-weight: bold; font-size: 0.9rem;">${goles.golesVisitante || 0}</span>
+                                    </span>
+                                </div>
+                                <div style="text-align: center; color: #ff6b6b; font-size: 0.6rem; margin-top: 2px;">Ganador: ${item.ganador}</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
             }
-        
+            
             html += `
                         </tbody>
                     </table>
                 </div>
             `;
             contenedor.innerHTML = html;
-        
+            
         } catch (error) {
             console.error("Error:", error);
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
