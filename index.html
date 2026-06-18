@@ -315,7 +315,7 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            border-bottom: 2px solid rgba(255,215,0,0.2);
+            border-bottom: 2px solid rgba(255,215,0,0.3);
             border-radius: 12px 12px 0 0;
         }
 
@@ -325,6 +325,7 @@
             font-weight: 700;
             letter-spacing: 1px;
             color: #ffd700;
+            text-shadow: 0 0 20px rgba(255,215,0,0.15);
         }
 
         .partidos-count {
@@ -333,7 +334,7 @@
             padding: 4px 14px;
             border-radius: 20px;
             font-size: 0.8rem;
-            border: 1px solid rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.15);
         }
 
         @media print {
@@ -824,16 +825,16 @@
                             // Predicción con marcador
                             html += `
                                 <div style="margin-top: 12px;">
-                                    <div style="background: linear-gradient(135deg, #1a472a, #0d2818); border-radius: 60px; padding: 10px 15px;">
-                                        <div style="display: flex; align-items: center; justify-content: center; gap: 20px;">
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <span style="background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.3rem;">${marcador.golesLocal}</span>
-                                                <span style="color: white;">${partido.equipo1}</span>
+                                    <div style="background: linear-gradient(135deg, #1a472a, #0d2818); border-radius: 60px; padding: 10px 15px; overflow: hidden;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
+                                            <div style="display: flex; align-items: center; gap: 6px; max-width: 45%;">
+                                                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${marcador.golesLocal}</span>
+                                                <span style="color: white; font-size: 0.85rem; word-break: break-word; text-align: center;">${partido.equipo1}</span>
                                             </div>
-                                            <div style="color: white; font-weight: bold;">VS</div>
-                                            <div style="display: flex; align-items: center; gap: 8px;">
-                                                <span style="color: white;">${partido.equipo2}</span>
-                                                <span style="background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.3rem;">${marcador.golesVisitante}</span>
+                                            <div style="color: white; font-weight: bold; flex-shrink: 0;">VS</div>
+                                            <div style="display: flex; align-items: center; gap: 6px; max-width: 45%;">
+                                                <span style="color: white; font-size: 0.85rem; word-break: break-word; text-align: center;">${partido.equipo2}</span>
+                                                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${marcador.golesVisitante}</span>
                                             </div>
                                         </div>
                                         <div style="text-align: center; color: #ccc; font-size: 0.75rem; margin-top: 5px;">Ganador: ${prediccion}</div>
@@ -1129,7 +1130,14 @@
         
             // Generar HTML
             let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">';
-        
+            
+            // Colores por grupo
+            const coloresGrupos = {
+                'A': '#E74C3C', 'B': '#3498DB', 'C': '#2ECC71', 'D': '#F1C40F',
+                'E': '#E67E22', 'F': '#9B59B6', 'G': '#1ABC9C', 'H': '#E91E63',
+                'I': '#00BCD4', 'J': '#FF5722', 'K': '#4CAF50', 'L': '#FFC107'
+            };
+
             for (let i = 65; i <= 76; i++) {
                 const letra = String.fromCharCode(i);
                 const equipos = grupos[letra];
@@ -1140,8 +1148,8 @@
                 equiposArray.sort((a, b) => b[1].pts - a[1].pts);
             
                 let htmlGrupo = `
-                    <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <div style="background: #1a472a; color: white; padding: 10px; text-align: center; font-weight: bold;">Grupo ${letra}</div>
+                    <div style="background: rgba(255,255,255,0.03); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); max-width: 420px; margin: 0 auto;">
+                        <div style="background: ${coloresGrupos[letra] || '#1a472a'}; color: white; padding: 10px; text-align: center; font-weight: bold;">Grupo ${letra}</div>
                         <div style="overflow-x: auto; padding: 10px;">
                             <table style="width: 100%; font-size: 0.8rem; border-collapse: collapse;">
                                 <thead>
