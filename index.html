@@ -55,15 +55,17 @@
         /* ========================
         PESTAÑAS
         ======================== */
+        /* Fijar el menú de pestañas */
         .tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(10px);
             padding: 6px;
-            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 10px;
         }
 
         .tab-btn {
@@ -434,10 +436,18 @@
         SELECTOR FAMILIAR
         ======================== */
         .selector-familiar {
+            position: sticky;
+            top: 60px; /* Debajo de las pestañas */
+            z-index: 99;
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: clamp(8px, 1vw, 15px);
-            margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
@@ -1038,7 +1048,7 @@
         
             for (const fecha of fechasOrdenadas) {
                 const fechaLegible = formatearFechaCompleta(fecha);
-                html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #1a472a; border-left: 4px solid #1a472a; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
+                html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px; text-shadow: 0 0 20px rgba(255,224,102,0.15);">📅 ${fechaLegible}</h3>`;
             
                 for (const partido of partidosPorFecha[fecha]) {
                     const partidoId = String(partido.id); // Asegurar string
