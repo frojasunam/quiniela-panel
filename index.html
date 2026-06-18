@@ -1167,7 +1167,7 @@
                 return;
             }
             
-            // Crear array con resultados y ordenar por fecha (más reciente primero)
+            // Crear array con resultados y ordenar por fecha (más antiguo primero)
             const resultadosArray = [];
             for (const [partidoId, ganador] of Object.entries(data.resultados)) {
                 const partido = partidosCalendario.find(p => p.id === partidoId);
@@ -1181,25 +1181,24 @@
                 }
             }
             
-            // Ordenar por fecha (más reciente primero)
-            resultadosArray.sort((a, b) => b.partido.fecha.localeCompare(a.partido.fecha));
+            // Ordenar por fecha (más antiguo primero)
+            resultadosArray.sort((a, b) => a.partido.fecha.localeCompare(b.partido.fecha));
             
             let html = '';
             
-            // Guardar el ID del primer resultado (más reciente) para hacer scroll
-            let primerResultadoId = null;
+            // Guardar el ID del último resultado (más reciente) para hacer scroll
+            let ultimoResultadoId = null;
             
             for (let i = 0; i < resultadosArray.length; i++) {
                 const item = resultadosArray[i];
                 const partido = item.partido;
                 const goles = item.goles;
                 const fechaLegible = formatearFechaCompleta(partido.fecha);
-                const horaCDMX = convertirHoraCDMX(partido.horaET);
                 const claseGrupo = obtenerClaseGrupo(partido.grupo);
                 
-                // Guardar el ID del primer resultado (más reciente)
-                if (i === 0) {
-                    primerResultadoId = `resultado-${partido.id}`;
+                // Guardar el ID del último resultado (más reciente)
+                if (i === resultadosArray.length - 1) {
+                    ultimoResultadoId = `resultado-${partido.id}`;
                 }
                 
                 html += `
@@ -1212,9 +1211,11 @@
                             <span style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 30px;">
                                 <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem;">${goles.golesLocal || 0}</span>
                                 <span style="color: white; font-size: 0.8rem;">${partido.equipo1}</span>
+                                ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px;"></span>` : ''}
                             </span>
                             <span style="color: white; font-weight: bold; font-size: 0.7rem;">VS</span>
                             <span style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 30px;">
+                                ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px;"></span>` : ''}
                                 <span style="color: white; font-size: 0.8rem;">${partido.equipo2}</span>
                                 <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem;">${goles.golesVisitante || 0}</span>
                             </span>
@@ -1226,10 +1227,10 @@
             
             contenedor.innerHTML = html;
             
-            // ========== POSICIONAR EN EL PRIMER RESULTADO (MÁS RECIENTE) ==========
+            // ========== POSICIONAR EN EL ÚLTIMO RESULTADO (MÁS RECIENTE) ==========
             setTimeout(() => {
-                if (primerResultadoId) {
-                    const elemento = document.getElementById(primerResultadoId);
+                if (ultimoResultadoId) {
+                    const elemento = document.getElementById(ultimoResultadoId);
                     if (elemento) {
                         elemento.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
