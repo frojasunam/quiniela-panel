@@ -105,17 +105,10 @@
             background: rgba(255,255,255,0.05);
             border-radius: 12px;
             padding: clamp(12px, 1.5vw, 20px);
-            padding-top: calc(120px + clamp(12px, 1.5vw, 20px));
         }
 
         .tab-content.active {
             display: block;
-        }
-
-        @media (max-width: 600px) {
-            .tab-content {
-                padding-top: calc(130px + clamp(12px, 1.5vw, 20px));
-            }
         }
 
         /* ========================
@@ -719,34 +712,20 @@
 
         #calendario-container,
         #predicciones-container {
-            padding-top: 20px;
-            scroll-margin-top: 130px;
-        }
-
-        /* Para móviles */
-        @media (max-width: 600px) {
-            #calendario-container,
-            #predicciones-container {
-                padding-top: 10px;
-                scroll-margin-top: 150px;
-            }
+            padding-top: 0px;
         }
 
         /* ========================
-        COMPENSACIÓN PARA ELEMENTOS FIJOS
-        ======================== */
+        COMPENSACIÓN PARA ELEMENTOS FIJOS EN SCROLL AUTOMÁTICO
+        ======================= */
 
-        /* Para fechas en calendario */
-        .dia-bloque,
-        [data-fecha] {
-            scroll-margin-top: 140px;
+        html {
+            scroll-padding-top: 130px;
         }
 
-        /* Para móviles */
         @media (max-width: 600px) {
-            .dia-bloque,
-            [data-fecha] {
-                scroll-margin-top: 160px;
+            html {
+                scroll-padding-top: 170px;
             }
         }
 
