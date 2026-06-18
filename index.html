@@ -299,23 +299,15 @@
         .grupo-tag-L { background: #FFC107; }
 
         /* Estilo para fechas del calendario */
-        .dia-bloque {
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
-            margin-bottom: 25px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
         .dia-header {
-            background: linear-gradient(135deg, #0d2818, #1a472a);
+            background: linear-gradient(135deg, #1a472a, #0d2818);
             color: #ffd700;
             padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            border-bottom: 2px solid rgba(255,215,0,0.3);
+            border-bottom: 3px solid #ffd700;
             border-radius: 12px 12px 0 0;
         }
 
@@ -325,16 +317,24 @@
             font-weight: 700;
             letter-spacing: 1px;
             color: #ffd700;
-            text-shadow: 0 0 20px rgba(255,215,0,0.15);
+            text-shadow: 0 0 30px rgba(255,215,0,0.2);
         }
 
         .partidos-count {
-            background: rgba(255,215,0,0.15);
+            background: rgba(255,215,0,0.2);
             color: #ffd700;
             padding: 4px 14px;
             border-radius: 20px;
             font-size: 0.8rem;
-            border: 1px solid rgba(255,215,0,0.15);
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+
+        .dia-bloque {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            border: 1px solid rgba(255,215,0,0.1);
         }
 
         @media print {
@@ -821,23 +821,23 @@
                 
                     // Sección de predicción
                     if (prediccion) {
+                        // Predicción con marcador - versión mejorada para móvil
                         if (marcador && marcador.golesLocal && marcador.golesVisitante) {
-                            // Predicción con marcador
                             html += `
                                 <div style="margin-top: 12px;">
-                                    <div style="background: linear-gradient(135deg, #1a472a, #0d2818); border-radius: 60px; padding: 10px 15px; overflow: hidden;">
-                                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;">
-                                            <div style="display: flex; align-items: center; gap: 6px; max-width: 45%;">
-                                                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${marcador.golesLocal}</span>
-                                                <span style="color: white; font-size: 0.85rem; word-break: break-word; text-align: center;">${partido.equipo1}</span>
-                                            </div>
-                                            <div style="color: white; font-weight: bold; flex-shrink: 0;">VS</div>
-                                            <div style="display: flex; align-items: center; gap: 6px; max-width: 45%;">
-                                                <span style="color: white; font-size: 0.85rem; word-break: break-word; text-align: center;">${partido.equipo2}</span>
-                                                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 30px; color: #ffd700; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${marcador.golesVisitante}</span>
-                                            </div>
+                                    <div style="background: linear-gradient(135deg, #1a472a, #0d2818); border-radius: 60px; padding: 8px 12px; overflow: hidden;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
+                                            <span style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); padding: 2px 10px; border-radius: 30px; max-width: 45%;">
+                                                <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 20px; color: #ffd700; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">${marcador.golesLocal}</span>
+                                                <span style="color: white; font-size: 0.7rem; word-break: break-word; text-align: center; line-height: 1.2;">${partido.equipo1}</span>
+                                            </span>
+                                            <span style="color: white; font-weight: bold; font-size: 0.7rem; flex-shrink: 0;">VS</span>
+                                            <span style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); padding: 2px 10px; border-radius: 30px; max-width: 45%;">
+                                                <span style="color: white; font-size: 0.7rem; word-break: break-word; text-align: center; line-height: 1.2;">${partido.equipo2}</span>
+                                                <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 20px; color: #ffd700; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">${marcador.golesVisitante}</span>
+                                            </span>
                                         </div>
-                                        <div style="text-align: center; color: #ccc; font-size: 0.75rem; margin-top: 5px;">Ganador: ${prediccion}</div>
+                                        <div style="text-align: center; color: #aaa; font-size: 0.65rem; margin-top: 4px;">Ganador: ${prediccion}</div>
                                     </div>
                                 </div>
                             `;
@@ -1148,23 +1148,49 @@
                 equiposArray.sort((a, b) => b[1].pts - a[1].pts);
             
                 let htmlGrupo = `
-                    <div style="background: rgba(255,255,255,0.03); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); max-width: 420px; margin: 0 auto;">
-                        <div style="background: ${coloresGrupos[letra] || '#1a472a'}; color: white; padding: 10px; text-align: center; font-weight: bold;">Grupo ${letra}</div>
-                        <div style="overflow-x: auto; padding: 10px;">
-                            <table style="width: 100%; font-size: 0.8rem; border-collapse: collapse;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); margin: 0 auto 20px auto; max-width: 400px; width: 100%;">
+                        <div style="background: ${coloresGrupos[letra] || '#1a472a'}; color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 1rem; letter-spacing: 1px;">
+                            Grupo ${letra}
+                        </div>
+                        <div style="overflow-x: auto; padding: 8px;">
+                            <table style="width: 100%; font-size: 0.75rem; border-collapse: collapse; margin: 0 auto;">
                                 <thead>
-                                    <tr style="border-bottom: 2px solid #ddd;">
-                                        <th style="text-align: center;">#</th>
-                                        <th style="text-align: left;">Equipo</th>
-                                        <th style="text-align: center;">PJ</th>
-                                        <th style="text-align: center;">G</th>
-                                        <th style="text-align: center;">E</th>
-                                        <th style="text-align: center;">P</th>
-                                        <th style="text-align: center;">DG</th>
-                                        <th style="text-align: center;">PTS</th>
+                                    <tr style="border-bottom: 2px solid rgba(255,255,255,0.1);">
+                                        <th style="text-align: center; padding: 6px 4px;">#</th>
+                                        <th style="text-align: left; padding: 6px 4px;">Equipo</th>
+                                        <th style="text-align: center; padding: 6px 4px;">PJ</th>
+                                        <th style="text-align: center; padding: 6px 4px;">G</th>
+                                        <th style="text-align: center; padding: 6px 4px;">E</th>
+                                        <th style="text-align: center; padding: 6px 4px;">P</th>
+                                        <th style="text-align: center; padding: 6px 4px;">DG</th>
+                                        <th style="text-align: center; padding: 6px 4px;">PTS</th>
                                     </tr>
                                 </thead>
                                 <tbody>
+                `;
+
+                equiposArray.forEach(([equipo, stats], idx) => {
+                    const dif = stats.gf - stats.gc;
+                    const bgColor = idx === 0 ? 'rgba(255,215,0,0.1)' : (idx === 1 ? 'rgba(255,255,255,0.03)' : (idx === 2 ? 'rgba(255,255,255,0.02)' : ''));
+                    htmlGrupo += `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); background: ${bgColor};">
+                            <td style="text-align: center; padding: 5px 4px; font-weight: bold;">${idx + 1}</td>
+                            <td style="text-align: left; padding: 5px 4px; font-size: 0.7rem;">${equipo}</td>
+                            <td style="text-align: center; padding: 5px 4px;">${stats.pj}</td>
+                            <td style="text-align: center; padding: 5px 4px;">${stats.pg}</td>
+                            <td style="text-align: center; padding: 5px 4px;">${stats.pe}</td>
+                            <td style="text-align: center; padding: 5px 4px;">${stats.pp}</td>
+                            <td style="text-align: center; padding: 5px 4px;">${dif > 0 ? '+' : ''}${dif}</td>
+                            <td style="text-align: center; padding: 5px 4px; font-weight: bold; color: #ffd700;">${stats.pts}</td>
+                        </tr>
+                    `;
+                });
+
+                htmlGrupo += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 `;
             
                 equiposArray.forEach(([equipo, stats], idx) => {
