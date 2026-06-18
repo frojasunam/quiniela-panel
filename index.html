@@ -10,52 +10,76 @@
         * { box-sizing: border-box; }
         body {
             font-family: 'Poppins', sans-serif;
-            background: #f0f2f5;
+            background: #0a1628;
             margin: 0;
             padding: 20px;
+            color: #ffffff;
+            min-height: 100vh;
         }
+
         .container {
             max-width: 1200px;
             margin: auto;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
+
         h1 {
-            color: #1a472a;
+            color: #ffd700;
             text-align: center;
-            font-size: 2rem;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255,215,0,0.2);
             margin-bottom: 5px;
         }
+
         .subtitulo {
             text-align: center;
-            color: #555;
+            color: #8a9ba8;
             margin-bottom: 30px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
         }
         
         /* Pestañas */
         .tabs {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 4px;
             margin-bottom: 20px;
-            background: white;
+            background: rgba(255,255,255,0.05);
             border-radius: 12px;
-            padding: 5px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 6px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
+
         .tab-btn {
             flex: 1;
             padding: 12px 20px;
-            background: #f0f0f0;
+            background: transparent;
             border: none;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             transition: all 0.3s;
+            color: #8a9ba8;
+            letter-spacing: 1px;
         }
+
         .tab-btn.active {
-            background: #1a472a;
-            color: white;
+            background: linear-gradient(135deg, #1a472a, #0d2818);
+            color: #ffd700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.1);
+        }
+
+        .tab-btn:hover {
+            color: #ffffff;
         }
         
         /* Contenido */
@@ -72,28 +96,40 @@
         
         /* Tarjetas de partidos */
         .partido-card {
-            border: 1px solid #e0e0e0;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 12px;
-            background: white;
+            transition: all 0.3s ease;
         }
+
+        .partido-card:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,215,0,0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
         .partido-info {
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
             margin-bottom: 8px;
             font-size: 0.75rem;
-            color: #666;
+            color: #8a9ba8;
         }
+
         .grupo-tag {
-            background: #3498db;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
+            background: linear-gradient(135deg, #1a472a, #0d2818);
+            color: #ffd700;
+            padding: 2px 12px;
+            border-radius: 20px;
             font-weight: bold;
             font-size: 0.7rem;
+            border: 1px solid rgba(255,215,0,0.1);
         }
+
         .equipos {
             display: flex;
             justify-content: space-between;
@@ -164,15 +200,26 @@
             width: 100%;
             border-collapse: collapse;
         }
-        .tabla-resultados th,
+
+        .tabla-resultados th {
+            background: linear-gradient(135deg, #1a472a, #0d2818);
+            color: #ffd700;
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
         .tabla-resultados td {
             padding: 10px;
             text-align: center;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #e0e0e0;
         }
-        .tabla-resultados th {
-            background: #1a472a;
-            color: white;
+
+        .tabla-resultados tr:hover {
+            background: rgba(255,255,255,0.03);
         }
         
         /* Estilo para impresión (PDF) */
@@ -223,9 +270,12 @@
         
         footer {
             text-align: center;
-            color: #888;
+            color: #5a6a7a;
             margin-top: 30px;
+            padding: 15px;
             font-size: 0.7rem;
+            letter-spacing: 1px;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
         
         .cargando {
