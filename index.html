@@ -199,25 +199,29 @@
 
         .equipos {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             font-weight: bold;
             margin-bottom: 6px;
             font-size: clamp(0.85rem, 1.1vw, 1.1rem);
+            gap: clamp(6px, 1vw, 14px);
             flex-wrap: wrap;
-            gap: 4px;
         }
 
         .equipo {
-            flex: 1;
             display: flex;
             align-items: center;
             gap: 4px;
-            min-width: 0;
+            flex: 0 1 auto;
+            max-width: 45%;
         }
 
         .equipo:first-child {
             justify-content: flex-end;
+        }
+
+        .equipo:last-child {
+            justify-content: flex-start;
         }
 
         .equipo span {
@@ -228,11 +232,11 @@
         }
 
         .vs {
-            margin: 0 clamp(4px, 1vw, 12px);
             color: #e74c3c;
             font-weight: bold;
             flex-shrink: 0;
             font-size: clamp(0.7rem, 0.9vw, 1rem);
+            padding: 0 4px;
         }
 
         .fi {
@@ -255,11 +259,11 @@
         }
 
         .prediccion-marcador-grid {
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 4px;
+            display: flex;
             align-items: center;
-            justify-items: center;
+            justify-content: center;
+            gap: clamp(4px, 0.8vw, 10px);
+            flex-wrap: wrap;
             text-align: center;
         }
 
@@ -267,13 +271,16 @@
             display: flex;
             align-items: center;
             gap: 4px;
-            width: 100%;
-            justify-content: center;
-            flex-wrap: wrap;
+            flex: 0 1 auto;
+            max-width: 45%;
         }
 
         .prediccion-marcador-grid .equipo-box:first-child {
             justify-content: flex-end;
+        }
+
+        .prediccion-marcador-grid .equipo-box:last-child {
+            justify-content: flex-start;
         }
 
         .prediccion-marcador-grid .goles {
@@ -1413,30 +1420,6 @@
                     </div>
                 `;
             
-                equiposArray.forEach(([equipo, stats], idx) => {
-                    const dif = stats.gf - stats.gc;
-                    const bgColor = idx === 0 ? '#e8f5e9' : (idx === 1 ? '#e3f2fd' : (idx === 2 ? '#fff3e0' : ''));
-                    htmlGrupo += `
-                        <tr style="border-bottom: 1px solid #eee; background: ${bgColor};">
-                            <td style="text-align: center;">${idx + 1}</td>
-                            <td style="text-align: left;">${equipo}</td>
-                            <td style="text-align: center;">${stats.pj}</td>
-                            <td style="text-align: center;">${stats.pg}</td>
-                            <td style="text-align: center;">${stats.pe}</td>
-                            <td style="text-align: center;">${stats.pp}</td>
-                            <td style="text-align: center;">${dif > 0 ? '+' : ''}${dif}</td>
-                            <td style="text-align: center;"><strong>${stats.pts}</strong></td>
-                        </tr>
-                    `;
-                });
-            
-                htmlGrupo += `
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                `;
-                html += htmlGrupo;
             }
         
             html += '</div>';
