@@ -1380,7 +1380,7 @@
             // Generar gráfico de evolución (con espera)
             setTimeout(() => {
                 generarGraficoEvolucion();
-            }, 500);
+            }, 800);
         
         } catch (error) {
             console.error("Error:", error);
@@ -1444,7 +1444,10 @@
     // ========================
     function generarGraficoEvolucion() {
         const canvas = document.getElementById('graficoEvolucion');
-        if (!canvas) return;
+        if (!canvas) {
+            console.log("Canvas no encontrado");
+            return;
+        }
         
         // Verificar que los datos estén cargados
         const hayDatos = participantes.some(p => {
@@ -1453,12 +1456,17 @@
         });
         
         if (!hayDatos) {
-            // Si no hay datos, esperar y reintentar
             console.log("Esperando datos para generar gráfico...");
             setTimeout(() => {
                 generarGraficoEvolucion();
-            }, 2000);
+            }, 3000);
             return;
+        }
+        
+        // Destruir gráfico anterior si existe
+        if (window.miGrafico) {
+            window.miGrafico.destroy();
+            window.miGrafico = null;
         }
         
         const ctx = canvas.getContext('2d');
@@ -1491,7 +1499,7 @@
             };
         });
         
-        new Chart(ctx, {
+        window.miGrafico = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: resultado.jornadas,
@@ -1542,6 +1550,8 @@
                 }
             }
         });
+        
+        console.log("Gráfico generado correctamente");
     }
 
     async function cargarPosicionesGrupos() {
