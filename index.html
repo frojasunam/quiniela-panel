@@ -1377,10 +1377,10 @@
         
             contenedor.innerHTML = html;
 
-            // Generar gráfico de evolución
+            // Generar gráfico de evolución (con espera)
             setTimeout(() => {
                 generarGraficoEvolucion();
-            }, 100);
+            }, 500);
         
         } catch (error) {
             console.error("Error:", error);
@@ -1445,6 +1445,21 @@
     function generarGraficoEvolucion() {
         const canvas = document.getElementById('graficoEvolucion');
         if (!canvas) return;
+        
+        // Verificar que los datos estén cargados
+        const hayDatos = participantes.some(p => {
+            const preds = predicciones[p] || {};
+            return Object.keys(preds).length > 0;
+        });
+        
+        if (!hayDatos) {
+            // Si no hay datos, esperar y reintentar
+            console.log("Esperando datos para generar gráfico...");
+            setTimeout(() => {
+                generarGraficoEvolucion();
+            }, 2000);
+            return;
+        }
         
         const ctx = canvas.getContext('2d');
         const resultado = calcularPuntosPorJornada();
