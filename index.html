@@ -6,6 +6,7 @@
     <title>Panel Quiniela Mundial 2026</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.3.2/css/flag-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* ========================
         ESTILOS BASE
@@ -782,6 +783,14 @@
     <div id="posiciones" class="tab-content">
         <h2>📊 Tabla de Posiciones</h2>
         <div id="posiciones-container" class="cargando">Cargando tabla de posiciones...</div>
+
+        <!-- Gráfico de evolución -->
+        <div style="margin-top: 30px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px;">
+            <h3>📈 Evolución de puntos por jornada</h3>
+            <div style="position: relative; height: 300px;">
+                <canvas id="graficoEvolucion"></canvas>
+            </div>
+        </div>
     
         <!-- Guía de logros (solo aquí) -->
         <div id="logros-referencia" style="margin-top: 20px; background: #f8f9fa; border-radius: 12px; padding: 15px;">
@@ -1367,11 +1376,157 @@
             html += '</div>';
         
             contenedor.innerHTML = html;
+
+            // Generar gráfico de evolución
+            setTimeout(() => {
+                generarGraficoEvolucion();
+            }, 100);
         
         } catch (error) {
             console.error("Error:", error);
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
         }
+    }
+
+    // ========================
+    // EVOLUCIÓN DE PUNTOS POR JORNADA
+    // ========================
+    function calcularPuntosPorJornada() {
+        // Agrupar partidos por fecha (jornada)
+        const fechas = {};
+        partidosCalendario.forEach(partido => {
+            if (!fechas[partido.fecha]) {
+                fechas[partido.fecha] = [];
+            }
+            fechas[partido.fecha].push(partido);
+        });
+        
+        const fechasOrdenadas = Object.keys(fechas).sort();
+        const jornadas = fechasOrdenadas.map(f => formatearFechaCompleta(f));
+        
+        // Inicializar puntos acumulados por participante
+        const puntosPorParticipante = {};
+        participantes.forEach(p => {
+            puntosPorParticipante[p] = [];
+            let acumulado = 0;
+            // Recorrer fechas en orden
+            for (const fecha of fechasOrdenadas) {
+                let puntosJornada = 0;
+                const partidosDia = fechas[fecha];
+                const preds = predicciones[p] || {};
+                const marks = marcadores[p] || {};
+                
+                for (const partido of partidosDia) {
+                    const resultadoReal = resultadosReales[partido.id];
+                    if (resultadoReal) {
+                        if (preds[partido.id] === resultadoReal) {
+                            puntosJornada += 1;
+                        }
+                        const marcadorReal = resultadosGoles[partido.id];
+                        const marcadorPredicho = marks[partido.id];
+                        if (marcadorPredicho && marcadorReal &&
+                            String(marcadorPredicho.golesLocal) === String(marcadorReal.golesLocal) &&
+                            String(marcadorPredicho.golesVisitante) === String(marcadorReal.golesVisitante)) {
+                            puntosJornada += 2;
+                        }
+                    }
+                }
+                acumulado += puntosJornada;
+                puntosPorParticipante[p].push(acumulado);
+            }
+        });
+        
+        return { jornadas, participantes, datos: puntosPorParticipante };
+    }
+
+    // ========================
+    // GENERAR GRÁFICO DE EVOLUCIÓN
+    // ========================
+    function generarGraficoEvolucion() {
+        const canvas = document.getElementById('graficoEvolucion');
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        const resultado = calcularPuntosPorJornada();
+        
+        if (resultado.jornadas.length === 0) {
+            canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">No hay datos suficientes para mostrar evolución.</p>';
+            return;
+        }
+        
+        // Colores para cada participante
+        const colores = [
+            '#E74C3C', '#3498DB', '#2ECC71', '#F1C40F', 
+            '#E67E22', '#9B59B6', '#1ABC9C', '#E91E63',
+            '#00BCD4', '#FF5722'
+        ];
+        
+        const datasets = resultado.participantes.map((p, idx) => {
+            const color = colores[idx % colores.length];
+            return {
+                label: p,
+                data: resultado.datos[p],
+                borderColor: color,
+                backgroundColor: color + '20',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: color,
+                tension: 0.2,
+                fill: false
+            };
+        });
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: resultado.jornadas,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff',
+                            font: { size: 10 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' pts';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#8a9ba8',
+                            font: { size: 9 },
+                            maxRotation: 45,
+                            autoSkip: true,
+                            maxTicksLimit: 15
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.05)'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#8a9ba8',
+                            font: { size: 10 },
+                            stepSize: 1
+                        },
+                        grid: {
+                            color: 'rgba(255,255,255,0.05)'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     }
 
     async function cargarPosicionesGrupos() {
