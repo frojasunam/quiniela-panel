@@ -1372,6 +1372,7 @@
         
             // Ver los datos en consola para depurar
             console.log("Datos de la tabla:", data.tabla);
+            window.tablaData = data.tabla;
 
         
             // Generar tabla manualmente con estructura clara
@@ -1512,11 +1513,8 @@
         const canvas = document.getElementById('graficoEvolucion');
         if (!canvas) return;
         
-        // Verificar que los datos estén cargados
-        const hayPredicciones = Object.keys(predicciones).length > 0;
-        const hayResultados = Object.keys(resultadosReales).length > 0;
-        
-        if (!hayPredicciones || !hayResultados) {
+        // Verificar que los datos de la tabla estén disponibles
+        if (!window.tablaData || window.tablaData.length === 0) {
             canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">Cargando datos del gráfico...</p>';
             return;
         }
@@ -1526,7 +1524,7 @@
             window.miGrafico = null;
         }
         
-        // Agrupar partidos por fecha
+        // Obtener fechas de partidos (jornadas)
         const fechas = {};
         partidosCalendario.forEach(partido => {
             if (!fechas[partido.fecha]) fechas[partido.fecha] = [];
@@ -1536,14 +1534,42 @@
         const fechasOrdenadas = Object.keys(fechas).sort();
         const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
         const fechasHastaHoy = fechasOrdenadas.filter(f => f <= hoy);
-        
-        // Obtener nombres de jornadas
         const jornadas = fechasHastaHoy.map(f => formatearFechaCompleta(f));
         
-        // Calcular puntos acumulados por jornada para cada participante
-        const puntosPorParticipante = {};
+        if (jornadas.length === 0) {
+            canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">No hay datos suficientes para mostrar evolución.</p>';
+            return;
+        }
+        
+        // Construir datasets a partir de window.tablaData
+        const colores = ['#E74C3C', '#3498DB', '#2ECC71', '#F1C40F', '#E67E22', '#9B59B6', '#1ABC9C', '#E91E63'];
+        
+        // Para cada participante, distribuir sus puntos totales en la última jornada
+        const datosEvolucion = {};
         participantes.forEach(p => {
-            puntosPorParticipante[p] = [];
+            datosEvolucion[p] = new Array(jornadas.length).fill(0);
+        });
+        
+        // Asignar los puntos totales al final de la evolución
+        window.tablaData.forEach(item => {
+            const p = item.participante;
+            const puntosTotales = item.puntos;
+            // Distribuir puntos: empezar desde 0 y terminar en puntosTotales
+            if (jornadas.length > 0) {
+                datosEvolucion[p][jornadas.length - 1] = puntosTotales;
+            }
+        });
+        
+        // Para dar una evolución más real, podemos interpolar puntos entre jornadas
+        // según la cantidad de partidos jugados en cada jornada
+        // Esto requiere conocer los partidos por jornada y los puntos acumulados
+        // Pero por simplicidad, usamos una evolución lineal progresiva
+        
+        // Mejor: calcular puntos acumulados por jornada desde predicciones
+        // Usamos los datos ya cargados
+        const puntosAcumulados = {};
+        participantes.forEach(p => {
+            puntosAcumulados[p] = [];
             let acumulado = 0;
             const preds = predicciones[p] || {};
             const marks = marcadores[p] || {};
@@ -1551,15 +1577,10 @@
             for (const fecha of fechasHastaHoy) {
                 let puntosJornada = 0;
                 const partidosDia = fechas[fecha];
-                
                 for (const partido of partidosDia) {
                     const resultadoReal = resultadosReales[partido.id];
                     if (resultadoReal) {
-                        // Acierto de ganador
-                        if (preds[partido.id] === resultadoReal) {
-                            puntosJornada += 1;
-                        }
-                        // Marcador exacto
+                        if (preds[partido.id] === resultadoReal) puntosJornada += 1;
                         const marcadorReal = resultadosGoles[partido.id];
                         const marcadorPredicho = marks[partido.id];
                         if (marcadorPredicho && marcadorReal &&
@@ -1570,24 +1591,16 @@
                     }
                 }
                 acumulado += puntosJornada;
-                puntosPorParticipante[p].push(acumulado);
+                puntosAcumulados[p].push(acumulado);
             }
         });
         
-        // Si no hay datos, mostrar mensaje
-        if (jornadas.length === 0) {
-            canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">No hay datos suficientes para mostrar evolución.</p>';
-            return;
-        }
-        
-        const colores = ['#E74C3C', '#3498DB', '#2ECC71', '#F1C40F', '#E67E22', '#9B59B6', '#1ABC9C', '#E91E63'];
-        
+        // Crear datasets con los puntos acumulados reales
         const datasets = participantes.map((p, idx) => {
             const color = colores[idx % colores.length];
-            const data = puntosPorParticipante[p] || [];
             return {
                 label: p,
-                data: data,
+                data: puntosAcumulados[p] || [],
                 borderColor: color,
                 backgroundColor: color + '20',
                 borderWidth: 2,
