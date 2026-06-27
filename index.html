@@ -1448,38 +1448,36 @@
     // EVOLUCIÓN DE PUNTOS POR JORNADA
     // ========================
     function calcularPuntosPorJornada() {
+        const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+    
         const fechas = {};
         partidosCalendario.forEach(partido => {
-            if (!fechas[partido.fecha]) {
-                fechas[partido.fecha] = [];
+            if (partido.fecha <= hoy) {
+                if (!fechas[partido.fecha]) {
+                    fechas[partido.fecha] = [];
+                }
+                fechas[partido.fecha].push(partido);
             }
-            fechas[partido.fecha].push(partido);
         });
         
         const fechasOrdenadas = Object.keys(fechas).sort();
         const jornadas = fechasOrdenadas.map(f => formatearFechaCompleta(f));
         
-        const predsGlobales = window.prediccionesGlobales || {};
-        const marksGlobales = window.marcadoresGlobales || {};
-        
         const puntosPorParticipante = {};
         participantes.forEach(p => {
             puntosPorParticipante[p] = [];
             let acumulado = 0;
-            const preds = predsGlobales[p] || {};
-            const marks = marksGlobales[p] || {};
+            const preds = predicciones[p] || {};
+            const marks = marcadores[p] || {};
             
             for (const fecha of fechasOrdenadas) {
                 let puntosJornada = 0;
                 const partidosDia = fechas[fecha];
-                
                 for (const partido of partidosDia) {
-                    const resultadoReal = window.resultadosRealesGlobales[partido.id];
+                    const resultadoReal = resultadosReales[partido.id];
                     if (resultadoReal) {
-                        if (preds[partido.id] === resultadoReal) {
-                            puntosJornada += 1;
-                        }
-                        const marcadorReal = window.resultadosGolesGlobales[partido.id];
+                        if (preds[partido.id] === resultadoReal) puntosJornada += 1;
+                        const marcadorReal = resultadosGoles[partido.id];
                         const marcadorPredicho = marks[partido.id];
                         if (marcadorPredicho && marcadorReal &&
                             String(marcadorPredicho.golesLocal) === String(marcadorReal.golesLocal) &&
