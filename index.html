@@ -851,11 +851,15 @@
                 return false;
             }
             
-            // Asignar a variables globales
+            // Asignar a variables globales para el gráfico
             window.prediccionesGlobales = data.predicciones || {};
             window.marcadoresGlobales = data.marcadores || {};
             
-            console.log("Predicciones cargadas para todos los familiares:", Object.keys(window.prediccionesGlobales).length);
+            // También llenar las variables principales para la tabla
+            predicciones = data.predicciones || {};
+            marcadores = data.marcadores || {};
+            
+            console.log("Predicciones cargadas para todos los familiares:", Object.keys(predicciones).length);
             return true;
         } catch (error) {
             console.error("Error:", error);
@@ -1072,7 +1076,7 @@
         
         // ========== NUEVO: Posicionar en la fecha actual ==========
         setTimeout(() => {
-            const hoy = new Date().toISOString().slice(0, 10);
+            const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
             const fechas = Object.keys(partidosPorFecha).sort();
             let fechaMasCercana = fechas[0];
             
@@ -1211,7 +1215,7 @@
 
             // Al final de la función, después de contenedor.innerHTML = html;
             // Posicionar en la fecha actual
-            const hoy = new Date().toISOString().slice(0, 10); // "2026-06-18"
+            const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
             const fechas = Object.keys(partidosPorFecha).sort();
             let fechaMasCercana = fechas[0];
 
