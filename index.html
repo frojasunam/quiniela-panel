@@ -840,6 +840,15 @@
     // ========================
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwxpO23gTmN6RcMJgfU4EN5yrcV9jQql5AqaZuV2OZ-yOy6pKbDqICD0zZDzY4dUGa/exec";
 
+    // ========================
+    // VARIABLES GLOBALES
+    // ========================
+    let predicciones = {};
+    let marcadores = {};
+    let resultadosReales = {};
+    let resultadosGoles = {};
+    const participantes = ["Luis", "Fernanda", "Gustavo", "Maru", "Isaac", "Lorena", "David", "Francisco"];
+
     async function cargarTodasLasPredicciones() {
         try {
             const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerTodasLasPredicciones`;
@@ -886,7 +895,7 @@
         }
     }
     
-    const participantes = ["Luis", "Fernanda", "Gustavo", "Maru", "Isaac", "Lorena", "David", "Francisco"];
+    
 
     // ========================
     // DICCIONARIO DE BANDERAS
