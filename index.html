@@ -838,7 +838,7 @@
     // ========================
     // CONFIGURACIÓN - CAMBIA ESTA URL POR LA TUYA
     // ========================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwxpO23gTmN6RcMJgfU4EN5yrcV9jQql5AqaZuV2OZ-yOy6pKbDqICD0zZDzY4dUGa/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUtAO5T1JGDI9cUukZk0PAiP2LAG4rrtiJrS5xHM2jRinEAnpe9P47UXHBfm_xAXIY/exec";
 
     // ========================
     // VARIABLES GLOBALES
@@ -1509,160 +1509,100 @@
     // ========================
     // GENERAR GRÁFICO DE EVOLUCIÓN
     // ========================
-    function generarGraficoEvolucion() {
+    async function generarGraficoEvolucion() {
         const canvas = document.getElementById('graficoEvolucion');
         if (!canvas) return;
         
-        // Verificar que los datos de la tabla estén disponibles
-        if (!window.tablaData || window.tablaData.length === 0) {
-            canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">Cargando datos del gráfico...</p>';
-            return;
-        }
-        
-        if (window.miGrafico) {
-            window.miGrafico.destroy();
-            window.miGrafico = null;
-        }
-        
-        // Obtener fechas de partidos (jornadas)
-        const fechas = {};
-        partidosCalendario.forEach(partido => {
-            if (!fechas[partido.fecha]) fechas[partido.fecha] = [];
-            fechas[partido.fecha].push(partido);
-        });
-        
-        const fechasOrdenadas = Object.keys(fechas).sort();
-        const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
-        const fechasHastaHoy = fechasOrdenadas.filter(f => f <= hoy);
-        const jornadas = fechasHastaHoy.map(f => formatearFechaCompleta(f));
-        
-        if (jornadas.length === 0) {
-            canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">No hay datos suficientes para mostrar evolución.</p>';
-            return;
-        }
-        
-        // Construir datasets a partir de window.tablaData
-        const colores = ['#E74C3C', '#3498DB', '#2ECC71', '#F1C40F', '#E67E22', '#9B59B6', '#1ABC9C', '#E91E63'];
-        
-        // Para cada participante, distribuir sus puntos totales en la última jornada
-        const datosEvolucion = {};
-        participantes.forEach(p => {
-            datosEvolucion[p] = new Array(jornadas.length).fill(0);
-        });
-        
-        // Asignar los puntos totales al final de la evolución
-        window.tablaData.forEach(item => {
-            const p = item.participante;
-            const puntosTotales = item.puntos;
-            // Distribuir puntos: empezar desde 0 y terminar en puntosTotales
-            if (jornadas.length > 0) {
-                datosEvolucion[p][jornadas.length - 1] = puntosTotales;
-            }
-        });
-        
-        // Para dar una evolución más real, podemos interpolar puntos entre jornadas
-        // según la cantidad de partidos jugados en cada jornada
-        // Esto requiere conocer los partidos por jornada y los puntos acumulados
-        // Pero por simplicidad, usamos una evolución lineal progresiva
-        
-        // Mejor: calcular puntos acumulados por jornada desde predicciones
-        // Usamos los datos ya cargados
-        const puntosAcumulados = {};
-        participantes.forEach(p => {
-            puntosAcumulados[p] = [];
-            let acumulado = 0;
-            const preds = predicciones[p] || {};
-            const marks = marcadores[p] || {};
+        try {
+            const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerEvolucionPuntos`;
+            const response = await fetch(url);
+            const data = await response.json();
             
-            for (const fecha of fechasHastaHoy) {
-                let puntosJornada = 0;
-                const partidosDia = fechas[fecha];
-                for (const partido of partidosDia) {
-                    const resultadoReal = resultadosReales[partido.id];
-                    if (resultadoReal) {
-                        if (preds[partido.id] === resultadoReal) puntosJornada += 1;
-                        const marcadorReal = resultadosGoles[partido.id];
-                        const marcadorPredicho = marks[partido.id];
-                        if (marcadorPredicho && marcadorReal &&
-                            String(marcadorPredicho.golesLocal) === String(marcadorReal.golesLocal) &&
-                            String(marcadorPredicho.golesVisitante) === String(marcadorReal.golesVisitante)) {
-                            puntosJornada += 2;
-                        }
-                    }
-                }
-                acumulado += puntosJornada;
-                puntosAcumulados[p].push(acumulado);
+            if (!data.exito || !data.evolucion) {
+                canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">Cargando datos del gráfico...</p>';
+                return;
             }
-        });
-        
-        // Crear datasets con los puntos acumulados reales
-        const datasets = participantes.map((p, idx) => {
-            const color = colores[idx % colores.length];
-            return {
-                label: p,
-                data: puntosAcumulados[p] || [],
-                borderColor: color,
-                backgroundColor: color + '20',
-                borderWidth: 2,
-                pointRadius: 3,
-                pointBackgroundColor: color,
-                tension: 0.2,
-                fill: false
-            };
-        });
-        
-        const ctx = canvas.getContext('2d');
-        window.miGrafico = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: jornadas,
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#ffffff',
-                            font: { size: 10 }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y + ' pts';
+            
+            if (window.miGrafico) {
+                window.miGrafico.destroy();
+                window.miGrafico = null;
+            }
+            
+            const jornadas = data.fechas.map(f => formatearFechaCompleta(f));
+            const colores = ['#E74C3C', '#3498DB', '#2ECC71', '#F1C40F', '#E67E22', '#9B59B6', '#1ABC9C', '#E91E63'];
+            
+            const datasets = data.participantes.map((p, idx) => {
+                const color = colores[idx % colores.length];
+                const puntos = data.evolucion[p] || [];
+                return {
+                    label: p,
+                    data: puntos,
+                    borderColor: color,
+                    backgroundColor: color + '20',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: color,
+                    tension: 0.2,
+                    fill: false
+                };
+            });
+            
+            const ctx = canvas.getContext('2d');
+            window.miGrafico = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: jornadas,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff',
+                                font: { size: 10 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' pts';
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        ticks: {
-                            color: '#8a9ba8',
-                            font: { size: 9 },
-                            maxRotation: 45,
-                            autoSkip: true,
-                            maxTicksLimit: 15
-                        },
-                        grid: {
-                            color: 'rgba(255,255,255,0.05)'
-                        }
                     },
-                    y: {
-                        ticks: {
-                            color: '#8a9ba8',
-                            font: { size: 10 },
-                            stepSize: 1
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#8a9ba8',
+                                font: { size: 9 },
+                                maxRotation: 45,
+                                autoSkip: true,
+                                maxTicksLimit: 15
+                            },
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            }
                         },
-                        grid: {
-                            color: 'rgba(255,255,255,0.05)'
-                        },
-                        beginAtZero: true
+                        y: {
+                            ticks: {
+                                color: '#8a9ba8',
+                                font: { size: 10 },
+                                stepSize: 1
+                            },
+                            grid: {
+                                color: 'rgba(255,255,255,0.05)'
+                            },
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error("Error:", error);
+            canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">Error al cargar el gráfico.</p>';
+        }
     }
 
     async function cargarPosicionesGrupos() {
