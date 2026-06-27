@@ -862,6 +862,25 @@
             return false;
         }
     }
+
+    async function cargarResultadosGlobales() {
+        try {
+            const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultados`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.exito) {
+                window.resultadosRealesGlobales = data.resultados || {};
+                window.resultadosGolesGlobales = data.goles || {};
+                console.log("Resultados cargados para gráfico");
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error("Error cargando resultados:", error);
+            return false;
+        }
+    }
     
     const participantes = ["Luis", "Fernanda", "Gustavo", "Maru", "Isaac", "Lorena", "David", "Francisco"];
 
@@ -1403,10 +1422,17 @@
             contenedor.innerHTML = html;
 
             // Cargar datos para el gráfico y generarlo
-            if (!window.prediccionesGlobales || Object.keys(window.prediccionesGlobales).length === 0) {
-                await cargarTodasLasPredicciones();
+            try {
+                if (!window.prediccionesGlobales || Object.keys(window.prediccionesGlobales).length === 0) {
+                    await cargarTodasLasPredicciones();
+                }
+                if (!window.resultadosRealesGlobales || Object.keys(window.resultadosRealesGlobales).length === 0) {
+                    await cargarResultadosGlobales();
+                }
+                generarGraficoEvolucion();
+            } catch (error) {
+                console.error("Error al generar gráfico:", error);
             }
-            generarGraficoEvolucion();
         
         } catch (error) {
             console.error("Error:", error);
@@ -1444,12 +1470,12 @@
                 const partidosDia = fechas[fecha];
                 
                 for (const partido of partidosDia) {
-                    const resultadoReal = resultadosReales[partido.id];
+                    const resultadoReal = window.resultadosRealesGlobales[partido.id];
                     if (resultadoReal) {
                         if (preds[partido.id] === resultadoReal) {
                             puntosJornada += 1;
                         }
-                        const marcadorReal = resultadosGoles[partido.id];
+                        const marcadorReal = window.resultadosGolesGlobales[partido.id];
                         const marcadorPredicho = marks[partido.id];
                         if (marcadorPredicho && marcadorReal &&
                             String(marcadorPredicho.golesLocal) === String(marcadorReal.golesLocal) &&
