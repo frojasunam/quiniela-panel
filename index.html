@@ -885,6 +885,11 @@
             if (data.exito) {
                 window.resultadosRealesGlobales = data.resultados || {};
                 window.resultadosGolesGlobales = data.goles || {};
+                
+                // ASIGNAR A LAS VARIABLES GLOBALES QUE USA EL GRÁFICO
+                resultadosReales = data.resultados || {};
+                resultadosGoles = data.goles || {};
+                
                 console.log("Resultados cargados para gráfico");
                 return true;
             }
@@ -894,9 +899,6 @@
             return false;
         }
     }
-    
-    
-
     // ========================
     // DICCIONARIO DE BANDERAS
     // ========================
