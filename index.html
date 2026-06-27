@@ -1444,7 +1444,7 @@
     // ========================
     // GENERAR GRÁFICO DE EVOLUCIÓN
     // ========================
-    function generarGraficoEvolucion() {
+    function generarGraficoEvolucion(intentos = 0) {
         const canvas = document.getElementById('graficoEvolucion');
         if (!canvas) {
             console.log("Canvas no encontrado");
@@ -1452,16 +1452,28 @@
         }
         
         // Verificar que los datos estén cargados
-        const hayDatos = participantes.some(p => {
-            const preds = predicciones[p] || {};
-            return Object.keys(preds).length > 0;
-        });
+        let hayDatos = false;
+        try {
+            hayDatos = participantes.some(p => {
+                const preds = predicciones[p] || {};
+                return Object.keys(preds).length > 0;
+            });
+        } catch (e) {
+            hayDatos = false;
+        }
+        
+        // Si no hay datos y no hemos intentado más de 10 veces, esperar y reintentar
+        if (!hayDatos && intentos < 10) {
+            console.log(`Esperando datos para generar gráfico... (intento ${intentos + 1}/10)`);
+            setTimeout(() => {
+                generarGraficoEvolucion(intentos + 1);
+            }, 2000);
+            return;
+        }
         
         if (!hayDatos) {
-            console.log("Esperando datos para generar gráfico...");
-            setTimeout(() => {
-                generarGraficoEvolucion();
-            }, 3000);
+            console.log("No se pudieron cargar los datos después de 10 intentos.");
+            canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">Cargando datos para el gráfico...</p>';
             return;
         }
         
@@ -1555,7 +1567,6 @@
         
         console.log("Gráfico generado correctamente");
     }
-
     async function cargarPosicionesGrupos() {
         const contenedor = document.getElementById('posiciones-grupos-container');
         contenedor.innerHTML = '<div class="cargando">Cargando posiciones de grupos...</div>';
