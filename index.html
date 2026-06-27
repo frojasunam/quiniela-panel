@@ -1372,6 +1372,7 @@
         
             // Ver los datos en consola para depurar
             console.log("Datos de la tabla:", data.tabla);
+            window.tablaData = data.tabla;
         
             // Generar tabla manualmente con estructura clara
             let html = '<h3>📊 Tabla de Posiciones</h3>';
@@ -1511,7 +1512,9 @@
         const canvas = document.getElementById('graficoEvolucion');
         if (!canvas) return;
         
-        if (!window.prediccionesGlobales || Object.keys(window.prediccionesGlobales).length === 0) {
+        // Obtener los datos de la tabla ya calculados
+        const tablaData = window.tablaData || [];
+        if (tablaData.length === 0) {
             canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">Cargando datos del gráfico...</p>';
             return;
         }
@@ -1521,21 +1524,17 @@
             window.miGrafico = null;
         }
         
-        const ctx = canvas.getContext('2d');
-        const resultado = calcularPuntosPorJornada();
-        
-        if (resultado.jornadas.length === 0) {
-            canvas.parentElement.innerHTML = '<p style="text-align:center; color: #8a9ba8;">No hay datos suficientes para mostrar evolución.</p>';
-            return;
-        }
-        
+        // Usar los puntos de la tabla como datos finales (acumulados por jornada)
+        // Como no tenemos evolución por jornada desde la tabla, usamos el total
+        // y simulamos una evolución lineal (esto es un parche)
         const colores = ['#E74C3C', '#3498DB', '#2ECC71', '#F1C40F', '#E67E22', '#9B59B6', '#1ABC9C', '#E91E63'];
         
-        const datasets = resultado.participantes.map((p, idx) => {
+        // Crear datasets con los puntos totales de la tabla
+        const datasets = tablaData.map((item, idx) => {
             const color = colores[idx % colores.length];
             return {
-                label: p,
-                data: resultado.datos[p],
+                label: item.participante,
+                data: [0, item.puntos],
                 borderColor: color,
                 backgroundColor: color + '20',
                 borderWidth: 2,
@@ -1546,10 +1545,11 @@
             };
         });
         
+        const ctx = canvas.getContext('2d');
         window.miGrafico = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: resultado.jornadas,
+                labels: ['Inicio', 'Actual'],
                 datasets: datasets
             },
             options: {
@@ -1561,23 +1561,13 @@
                             color: '#ffffff',
                             font: { size: 10 }
                         }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y + ' pts';
-                            }
-                        }
                     }
                 },
                 scales: {
                     x: {
                         ticks: {
                             color: '#8a9ba8',
-                            font: { size: 9 },
-                            maxRotation: 45,
-                            autoSkip: true,
-                            maxTicksLimit: 15
+                            font: { size: 10 }
                         },
                         grid: {
                             color: 'rgba(255,255,255,0.05)'
@@ -1598,6 +1588,7 @@
             }
         });
     }
+
     async function cargarPosicionesGrupos() {
         const contenedor = document.getElementById('posiciones-grupos-container');
         contenedor.innerHTML = '<div class="cargando">Cargando posiciones de grupos...</div>';
