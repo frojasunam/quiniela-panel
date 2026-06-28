@@ -872,7 +872,7 @@
     // ========================
     // CONFIGURACIÓN - CAMBIA ESTA URL POR LA TUYA
     // ========================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzn2MzoB8KIIqUSe0o0NvEC2VB7vKK1yBaAMAzeWIoCKO733GhnnYAXoqNUjXgEIn9V/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmrr6KbAG9nmXEDG0ZEYD9SH0cAhttVnsDDXR3pZYIysOFoM9C09ow3mtPpaLQrEA/exec";
 
     // ========================
     // VARIABLES GLOBALES
@@ -2125,7 +2125,7 @@
     // Función para guardar predicciones de 16avos
     async function guardarPredicciones16avos() {
         const nombre = document.getElementById('selector-familiar-16avos').value;
-        
+    
         if (prediccionesBloqueadas16avos[nombre]) {
             alert(`🔒 ${nombre} ya tiene sus predicciones de 16avos bloqueadas. No se pueden modificar.`);
             return;
@@ -2169,21 +2169,18 @@
         
         if (errores > 0) return;
         
-        // Guardar en Google Sheets
+        // Guardar en Google Sheets (usando GET con parámetros)
         try {
-            const url = `${GOOGLE_SCRIPT_URL}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    accion: 'guardarPredicciones16avos',
-                    participante: nombre,
-                    predicciones: predicciones,
-                    diferencias: diferencias,
-                    definiciones: definiciones
-                })
+            const params = new URLSearchParams({
+                accion: 'guardarPredicciones16avos',
+                participante: nombre,
+                predicciones: JSON.stringify(predicciones),
+                diferencias: JSON.stringify(diferencias),
+                definiciones: JSON.stringify(definiciones)
             });
             
+            const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
+            const response = await fetch(url);
             const data = await response.json();
             
             if (!data.exito) {
