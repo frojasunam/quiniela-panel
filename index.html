@@ -1187,6 +1187,14 @@
             const predicciones16Map = data16avos.exito ? (data16avos.predicciones || {}) : {};
             const diferencias16Map = data16avos.exito ? (data16avos.diferencias || {}) : {};
             const definiciones16Map = data16avos.exito ? (data16avos.definiciones || {}) : {};
+
+            // ========== NUEVO: Actualizar variables globales ==========
+            predicciones16avos = predicciones16Map;
+            diferencias16avos = diferencias16Map;
+            definiciones16avos = definiciones16Map;
+            // También actualizar el estado de bloqueo (sin redeclarar la variable)
+            prediccionesBloqueadas16avos[nombre] = Object.keys(predicciones16Map).length > 0;
+            // ===========================================================
             
             // ========== GENERAR HTML ==========
             let html = `<p><strong>${nombre}</strong> - Resumen de predicciones:</p>`;
@@ -2300,12 +2308,13 @@
         // 1. Cargar calendario
         cargarCalendario();
         
-        // 2. Cargar predicciones de 16avos para el usuario por defecto (Luis)
-        const nombreDefault = document.getElementById('selector-familiar-16avos').value;
-        await cargarPredicciones16avos(nombreDefault);
-        
-        // 3. Cargar predicciones de grupos para el usuario por defecto
+        // 2. Cargar predicciones de grupos para el usuario por defecto (LUEGO ESTO CARGARÁ 16AVOS TAMBIÉN)
+        const nombreDefault = document.getElementById('selector-familiar-pred').value;
         await cargarPredicciones(nombreDefault);
+        
+        // 3. Cargar predicciones de 16avos para el usuario por defecto (PARA LA PESTAÑA 16AVOS)
+        // PERO usamos el mismo nombre para mantener consistencia
+        await cargarPredicciones16avos(nombreDefault);
         
         // 4. Cargar resultados
         cargarResultados();
@@ -2318,13 +2327,24 @@
     document.getElementById('selector-familiar-16avos').addEventListener('change', async function() {
         const nombre = this.value;
         await cargarPredicciones16avos(nombre);
+        // También actualizar la pestaña de predicciones si está activa
+        const tabPredicciones = document.getElementById('predicciones');
+        if (tabPredicciones.classList.contains('active')) {
+            await cargarPredicciones(nombre);
+        }
     });
 
     // Evento para cuando se cambia el selector de predicciones
     document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
         const nombre = this.value;
         await cargarPredicciones(nombre);
+        // También actualizar la pestaña de 16avos si está activa
+        const tab16avos = document.getElementById('dieciseisavos');
+        if (tab16avos.classList.contains('active')) {
+            await cargarPredicciones16avos(nombre);
+        }
     });
+
     // ========================
     // EVENTOS DE 16AVOS
     // ========================
