@@ -1173,35 +1173,20 @@
             // ========== CARGAR PREDICCIONES DE GRUPOS ==========
             const urlGrupos = `${GOOGLE_SCRIPT_URL}?accion=obtenerPrediccionesDeUsuario&participante=${encodeURIComponent(nombre)}`;
             const responseGrupos = await fetch(urlGrupos);
-            
-            if (!responseGrupos.ok) {
-                throw new Error(`HTTP error! status: ${responseGrupos.status}`);
-            }
-            
             const dataGrupos = await responseGrupos.json();
-            
-            if (!dataGrupos.exito) {
-                contenedor.innerHTML = `<p>❌ Error: ${dataGrupos.error || 'No se pudieron cargar las predicciones'}</p>`;
-                return;
-            }
-            
-            const prediccionesMap = dataGrupos.predicciones || {};
-            const marcadoresMap = dataGrupos.marcadores || {};
             
             // ========== CARGAR PREDICCIONES DE 16AVOS ==========
             const url16avos = `${GOOGLE_SCRIPT_URL}?accion=cargarPredicciones16avos&participante=${encodeURIComponent(nombre)}`;
             const response16avos = await fetch(url16avos);
             const data16avos = await response16avos.json();
             
-            let predicciones16Map = {};
-            let diferencias16Map = {};
-            let definiciones16Map = {};
+            // ========== PROCESAR DATOS ==========
+            const prediccionesMap = dataGrupos.exito ? (dataGrupos.predicciones || {}) : {};
+            const marcadoresMap = dataGrupos.exito ? (dataGrupos.marcadores || {}) : {};
             
-            if (data16avos.exito) {
-                predicciones16Map = data16avos.predicciones || {};
-                diferencias16Map = data16avos.diferencias || {};
-                definiciones16Map = data16avos.definiciones || {};
-            }
+            const predicciones16Map = data16avos.exito ? (data16avos.predicciones || {}) : {};
+            const diferencias16Map = data16avos.exito ? (data16avos.diferencias || {}) : {};
+            const definiciones16Map = data16avos.exito ? (data16avos.definiciones || {}) : {};
             
             // ========== GENERAR HTML ==========
             let html = `<p><strong>${nombre}</strong> - Resumen de predicciones:</p>`;
@@ -1220,7 +1205,7 @@
             
             for (const fecha of fechasOrdenadas) {
                 const fechaLegible = formatearFechaCompleta(fecha);
-                html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px; text-shadow: 0 0 20px rgba(255,224,102,0.15);">📅 ${fechaLegible}</h3>`;
+                html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
                 
                 for (const partido of partidosPorFecha[fecha]) {
                     const partidoId = String(partido.id);
@@ -1249,7 +1234,7 @@
                             </div>
                     `;
                     
-                    // Sección de predicción de grupos
+                    // Predicción de grupos
                     if (prediccion) {
                         if (marcador && marcador.golesLocal && marcador.golesVisitante) {
                             html += `
@@ -1368,7 +1353,7 @@
             
             contenedor.innerHTML = html;
             
-            // Posicionar en la fecha actual (para grupos)
+            // Posicionar en la fecha actual
             const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
             const fechas = Object.keys(partidosPorFecha).sort();
             let fechaMasCercana = fechas[0];
@@ -2033,15 +2018,23 @@
             const response = await fetch(url);
             const data = await response.json();
             
+            console.log(`📥 Datos cargados para ${nombre}:`, data);
+            
             if (!data.exito) {
                 contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las predicciones'}</p>`;
                 return;
             }
             
-            // Guardar datos
+            // Guardar datos en variables GLOBALES
             predicciones16avos = data.predicciones || {};
             diferencias16avos = data.diferencias || {};
             definiciones16avos = data.definiciones || {};
+            
+            // Determinar si está bloqueado
+            const tienePredicciones = Object.keys(predicciones16avos).length > 0;
+            prediccionesBloqueadas16avos[nombre] = tienePredicciones;
+            
+            console.log(`🔒 ${nombre}: ${tienePredicciones ? 'BLOQUEADO' : 'EDITABLE'}`);
             
             // Mostrar los partidos con las predicciones cargadas
             mostrarPartidos16avos(nombre);
@@ -2061,11 +2054,13 @@
             return;
         }
         
-        // Verificar si el usuario tiene predicciones guardadas
         const tienePredicciones = Object.keys(predicciones16avos).length > 0;
         const estaBloqueado = prediccionesBloqueadas16avos[nombre] || false;
         
         let html = `<p><strong>${nombre}</strong> - Partidos de 16avos de Final</p>`;
+        html += `<p style="font-size: 0.8rem; color: ${tienePredicciones ? '#ffd700' : '#8a9ba8'};">
+            ${tienePredicciones ? '🔒 Predicciones guardadas (bloqueadas)' : '📝 Sin predicciones guardadas (editable)'}
+        </p>`;
         
         // Agrupar partidos por fecha
         const partidosPorFecha = {};
@@ -2088,8 +2083,8 @@
                 const horaCDMX = convertirHoraCDMX(partido.horaET);
                 const claseGrupo = obtenerClaseGrupo(partido.grupo);
                 
-                // Opciones de diferencia de goles
                 const opcionesDiferencia = [1, 2, 3, '4+'];
+                const disabled = (estaBloqueado || tienePredicciones) ? 'disabled' : '';
                 
                 html += `
                     <div class="partido-card" style="margin-bottom: 15px;">
@@ -2112,7 +2107,7 @@
                         <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                             <div>
                                 <label style="font-size: 0.7rem; color: #8a9ba8;">Ganador</label>
-                                <select id="ganador-${partidoId}" data-partido-id="${partidoId}" ${estaBloqueado || tienePredicciones ? 'disabled' : ''}>
+                                <select id="ganador-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
                                     <option value="">--</option>
                                     <option value="${partido.equipo1}" ${prediccion === partido.equipo1 ? 'selected' : ''}>${partido.equipo1}</option>
                                     <option value="${partido.equipo2}" ${prediccion === partido.equipo2 ? 'selected' : ''}>${partido.equipo2}</option>
@@ -2120,14 +2115,14 @@
                             </div>
                             <div>
                                 <label style="font-size: 0.7rem; color: #8a9ba8;">Diferencia de goles</label>
-                                <select id="diferencia-${partidoId}" data-partido-id="${partidoId}" ${estaBloqueado || tienePredicciones ? 'disabled' : ''}>
+                                <select id="diferencia-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
                                     <option value="">--</option>
                                     ${opcionesDiferencia.map(d => `<option value="${d}" ${diferencia == d ? 'selected' : ''}>${d} gol${d > 1 ? 'es' : ''}</option>`).join('')}
                                 </select>
                             </div>
                             <div>
                                 <label style="font-size: 0.7rem; color: #8a9ba8;">Definición</label>
-                                <select id="definicion-${partidoId}" data-partido-id="${partidoId}" ${estaBloqueado || tienePredicciones ? 'disabled' : ''}>
+                                <select id="definicion-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
                                     <option value="">--</option>
                                     <option value="90'" ${definicion === "90'" ? 'selected' : ''}>90'</option>
                                     <option value="120'" ${definicion === "120'" ? 'selected' : ''}>120'</option>
@@ -2135,7 +2130,7 @@
                                 </select>
                             </div>
                         </div>
-                        ${estaBloqueado || tienePredicciones ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,215,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ffd700;">🔒 Predicción guardada</div>' : ''}
+                        ${(estaBloqueado || tienePredicciones) ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,215,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ffd700;">🔒 Predicción guardada - No se puede modificar</div>' : ''}
                     </div>
                 `;
             }
@@ -2154,18 +2149,15 @@
             return;
         }
         
-        // Confirmación doble
         const confirmacion1 = confirm(`⚠️ ¿Estás SEGURO que quieres guardar tus predicciones de 16avos para ${nombre}?\n\n⚠️ UNA VEZ GUARDADAS YA NO PODRÁS MODIFICARLAS.`);
         if (!confirmacion1) return;
         
         const confirmacion2 = confirm(`Última oportunidad: ¿Guardar predicciones de 16avos de ${nombre} definitivamente?`);
         if (!confirmacion2) return;
         
-        // Recopilar datos
         const predicciones = {};
         const diferencias = {};
         const definiciones = {};
-        let errores = 0;
         
         for (const partido of partidos16avos) {
             const partidoId = String(partido.id);
@@ -2176,23 +2168,16 @@
             if (!ganadorSelect || !diferenciaSelect || !definicionSelect) continue;
             
             const ganador = ganadorSelect.value;
-            const diferencia = diferenciaSelect.value;
-            const definicion = definicionSelect.value;
-            
             if (!ganador) {
-                errores++;
                 alert(`❌ Falta seleccionar el ganador para el partido ${partido.equipo1} vs ${partido.equipo2}`);
                 return;
             }
             
             predicciones[partidoId] = ganador;
-            diferencias[partidoId] = diferencia;
-            definiciones[partidoId] = definicion;
+            diferencias[partidoId] = diferenciaSelect.value;
+            definiciones[partidoId] = definicionSelect.value;
         }
         
-        if (errores > 0) return;
-        
-        // ============ USAR POST CON JSON ============
         try {
             const payload = {
                 accion: 'guardarPredicciones16avos',
@@ -2202,28 +2187,29 @@
                 definiciones: definiciones
             };
             
-            const response = await fetch(GOOGLE_SCRIPT_URL, {
+            await fetch(GOOGLE_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Necesario para Google Apps Script
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             
-            // Con no-cors no podemos leer la respuesta, pero la solicitud ya se envió
-            
-            // Bloquear localmente
-            prediccionesBloqueadas16avos[nombre] = true;
+            // Actualizar variables globales
             predicciones16avos = predicciones;
             diferencias16avos = diferencias;
             definiciones16avos = definiciones;
+            prediccionesBloqueadas16avos[nombre] = true;
             
             alert(`✅ Predicciones de 16avos guardadas para ${nombre}`);
-            mostrarPartidos16avos(nombre);
             
-            // Recargar para confirmar
+            // Recargar para mostrar el estado bloqueado
             await cargarPredicciones16avos(nombre);
+            
+            // Si la pestaña de predicciones está activa, recargarla también
+            const tabPredicciones = document.getElementById('predicciones');
+            if (tabPredicciones.classList.contains('active')) {
+                await cargarPredicciones(nombre);
+            }
             
         } catch (error) {
             console.error("Error:", error);
@@ -2306,12 +2292,39 @@
     });
     
     // ========================
-    // INICIALIZACIÓN
+    // INICIALIZACIÓN COMPLETA
     // ========================
-    cargarCalendario();
-    cargarPredicciones('Luis');
-    cargarResultados();
-    initTabs();
+
+    // Al cargar la página
+    document.addEventListener('DOMContentLoaded', async function() {
+        // 1. Cargar calendario
+        cargarCalendario();
+        
+        // 2. Cargar predicciones de 16avos para el usuario por defecto (Luis)
+        const nombreDefault = document.getElementById('selector-familiar-16avos').value;
+        await cargarPredicciones16avos(nombreDefault);
+        
+        // 3. Cargar predicciones de grupos para el usuario por defecto
+        await cargarPredicciones(nombreDefault);
+        
+        // 4. Cargar resultados
+        cargarResultados();
+        
+        // 5. Inicializar pestañas
+        initTabs();
+    });
+
+    // Evento para cuando se cambia el selector de 16avos
+    document.getElementById('selector-familiar-16avos').addEventListener('change', async function() {
+        const nombre = this.value;
+        await cargarPredicciones16avos(nombre);
+    });
+
+    // Evento para cuando se cambia el selector de predicciones
+    document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
+        const nombre = this.value;
+        await cargarPredicciones(nombre);
+    });
     // ========================
     // EVENTOS DE 16AVOS
     // ========================
