@@ -872,7 +872,7 @@
     // ========================
     // CONFIGURACIÓN - CAMBIA ESTA URL POR LA TUYA
     // ========================
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzmrr6KbAG9nmXEDG0ZEYD9SH0cAhttVnsDDXR3pZYIysOFoM9C09ow3mtPpaLQrEA/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxsqj37EpFO6j39in2LhqZbLKmoQQcxa6CJpfkYwF1Y0hZiltmjreb3taUbvw0Px9o/exec";
 
     // ========================
     // VARIABLES GLOBALES
@@ -2125,7 +2125,7 @@
     // Función para guardar predicciones de 16avos
     async function guardarPredicciones16avos() {
         const nombre = document.getElementById('selector-familiar-16avos').value;
-    
+
         if (prediccionesBloqueadas16avos[nombre]) {
             alert(`🔒 ${nombre} ya tiene sus predicciones de 16avos bloqueadas. No se pueden modificar.`);
             return;
@@ -2169,24 +2169,26 @@
         
         if (errores > 0) return;
         
-        // Guardar en Google Sheets (usando GET con parámetros)
+        // ============ USAR POST CON JSON ============
         try {
-            const params = new URLSearchParams({
+            const payload = {
                 accion: 'guardarPredicciones16avos',
                 participante: nombre,
-                predicciones: JSON.stringify(predicciones),
-                diferencias: JSON.stringify(diferencias),
-                definiciones: JSON.stringify(definiciones)
+                predicciones: predicciones,
+                diferencias: diferencias,
+                definiciones: definiciones
+            };
+            
+            const response = await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Necesario para Google Apps Script
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
             });
             
-            const url = `${GOOGLE_SCRIPT_URL}?${params.toString()}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (!data.exito) {
-                alert(`❌ Error: ${data.error || 'No se pudieron guardar las predicciones'}`);
-                return;
-            }
+            // Con no-cors no podemos leer la respuesta, pero la solicitud ya se envió
             
             // Bloquear localmente
             prediccionesBloqueadas16avos[nombre] = true;
@@ -2196,6 +2198,9 @@
             
             alert(`✅ Predicciones de 16avos guardadas para ${nombre}`);
             mostrarPartidos16avos(nombre);
+            
+            // Recargar para confirmar
+            await cargarPredicciones16avos(nombre);
             
         } catch (error) {
             console.error("Error:", error);
