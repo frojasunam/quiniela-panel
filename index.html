@@ -2033,16 +2033,33 @@
                 return;
             }
             
-            // Guardar datos en variables GLOBALES
-            predicciones16avos = data.predicciones || {};
-            diferencias16avos = data.diferencias || {};
-            definiciones16avos = data.definiciones || {};
+            // ========== SOLUCIÓN: Convertir las claves a STRING ==========
+            const prediccionesTemp = data.predicciones || {};
+            const diferenciasTemp = data.diferencias || {};
+            const definicionesTemp = data.definiciones || {};
+            
+            // Convertir todas las claves a string
+            predicciones16avos = {};
+            diferencias16avos = {};
+            definiciones16avos = {};
+            
+            for (const key in prediccionesTemp) {
+                predicciones16avos[String(key)] = prediccionesTemp[key];
+            }
+            for (const key in diferenciasTemp) {
+                diferencias16avos[String(key)] = diferenciasTemp[key];
+            }
+            for (const key in definicionesTemp) {
+                definiciones16avos[String(key)] = definicionesTemp[key];
+            }
+            // ================================================================
             
             // Determinar si está bloqueado
             const tienePredicciones = Object.keys(predicciones16avos).length > 0;
             prediccionesBloqueadas16avos[nombre] = tienePredicciones;
             
             console.log(`🔒 ${nombre}: ${tienePredicciones ? 'BLOQUEADO' : 'EDITABLE'}`);
+            console.log('📋 predicciones16avos:', predicciones16avos);
             
             // Mostrar los partidos con las predicciones cargadas
             mostrarPartidos16avos(nombre);
@@ -2181,6 +2198,7 @@
                 return;
             }
             
+            // Guardar con ID como string
             predicciones[partidoId] = ganador;
             diferencias[partidoId] = diferenciaSelect.value;
             definiciones[partidoId] = definicionSelect.value;
@@ -2190,7 +2208,7 @@
             const payload = {
                 accion: 'guardarPredicciones16avos',
                 participante: nombre,
-                predicciones: predicciones,
+                predicciones: predicciones,  // Esto ya tiene IDs como string
                 diferencias: diferencias,
                 definiciones: definiciones
             };
@@ -2202,10 +2220,21 @@
                 body: JSON.stringify(payload)
             });
             
-            // Actualizar variables globales
-            predicciones16avos = predicciones;
-            diferencias16avos = diferencias;
-            definiciones16avos = definiciones;
+            // Actualizar variables globales (YA CONVIERTE A STRING)
+            predicciones16avos = {};
+            diferencias16avos = {};
+            definiciones16avos = {};
+            
+            for (const key in predicciones) {
+                predicciones16avos[String(key)] = predicciones[key];
+            }
+            for (const key in diferencias) {
+                diferencias16avos[String(key)] = diferencias[key];
+            }
+            for (const key in definiciones) {
+                definiciones16avos[String(key)] = definiciones[key];
+            }
+            
             prediccionesBloqueadas16avos[nombre] = true;
             
             alert(`✅ Predicciones de 16avos guardadas para ${nombre}`);
