@@ -1168,48 +1168,67 @@
     async function cargarPredicciones(nombre) {
         const contenedor = document.getElementById('predicciones-container');
         contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
-    
+        
         try {
-            const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerPrediccionesDeUsuario&participante=${encodeURIComponent(nombre)}`;
-            const response = await fetch(url);
-        
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // ========== CARGAR PREDICCIONES DE GRUPOS ==========
+            const urlGrupos = `${GOOGLE_SCRIPT_URL}?accion=obtenerPrediccionesDeUsuario&participante=${encodeURIComponent(nombre)}`;
+            const responseGrupos = await fetch(urlGrupos);
+            
+            if (!responseGrupos.ok) {
+                throw new Error(`HTTP error! status: ${responseGrupos.status}`);
             }
-        
-            const data = await response.json();
-        
-            if (!data.exito) {
-                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las predicciones'}</p>`;
+            
+            const dataGrupos = await responseGrupos.json();
+            
+            if (!dataGrupos.exito) {
+                contenedor.innerHTML = `<p>❌ Error: ${dataGrupos.error || 'No se pudieron cargar las predicciones'}</p>`;
                 return;
             }
-        
-            const prediccionesMap = data.predicciones || {};
-            const marcadoresMap = data.marcadores || {};
-        
+            
+            const prediccionesMap = dataGrupos.predicciones || {};
+            const marcadoresMap = dataGrupos.marcadores || {};
+            
+            // ========== CARGAR PREDICCIONES DE 16AVOS ==========
+            const url16avos = `${GOOGLE_SCRIPT_URL}?accion=cargarPredicciones16avos&participante=${encodeURIComponent(nombre)}`;
+            const response16avos = await fetch(url16avos);
+            const data16avos = await response16avos.json();
+            
+            let predicciones16Map = {};
+            let diferencias16Map = {};
+            let definiciones16Map = {};
+            
+            if (data16avos.exito) {
+                predicciones16Map = data16avos.predicciones || {};
+                diferencias16Map = data16avos.diferencias || {};
+                definiciones16Map = data16avos.definiciones || {};
+            }
+            
+            // ========== GENERAR HTML ==========
             let html = `<p><strong>${nombre}</strong> - Resumen de predicciones:</p>`;
-        
+            
+            // ----- SECCIÓN: FASE DE GRUPOS -----
+            html += `<div style="margin-bottom: 30px;"><h2 style="color: #4CAF50; border-left: 4px solid #4CAF50; padding-left: 10px;">📋 FASE DE GRUPOS</h2>`;
+            
             // Agrupar partidos por fecha
             const partidosPorFecha = {};
             partidosCalendario.forEach(partido => {
                 if (!partidosPorFecha[partido.fecha]) partidosPorFecha[partido.fecha] = [];
                 partidosPorFecha[partido.fecha].push(partido);
             });
-        
+            
             const fechasOrdenadas = Object.keys(partidosPorFecha).sort();
-        
+            
             for (const fecha of fechasOrdenadas) {
                 const fechaLegible = formatearFechaCompleta(fecha);
                 html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px; text-shadow: 0 0 20px rgba(255,224,102,0.15);">📅 ${fechaLegible}</h3>`;
-            
+                
                 for (const partido of partidosPorFecha[fecha]) {
-                    const partidoId = String(partido.id); // Asegurar string
+                    const partidoId = String(partido.id);
                     const prediccion = prediccionesMap[partidoId] || null;
                     const marcador = marcadoresMap[partidoId] || null;
                     const horaCDMX = convertirHoraCDMX(partido.horaET);
                     const claseGrupo = obtenerClaseGrupo(partido.grupo);
-                
-                    // Siempre mostrar los equipos
+                    
                     html += `
                         <div class="partido-card" style="margin-bottom: 15px;">
                             <div class="partido-info">
@@ -1229,10 +1248,9 @@
                                 </span>
                             </div>
                     `;
-                
-                    // Sección de predicción
+                    
+                    // Sección de predicción de grupos
                     if (prediccion) {
-                        // Predicción con marcador - versión mejorada para móvil
                         if (marcador && marcador.golesLocal && marcador.golesVisitante) {
                             html += `
                                 <div style="margin-top: 12px;">
@@ -1253,7 +1271,6 @@
                                 </div>
                             `;
                         } else {
-                            // Solo ganador
                             html += `
                                 <div style="margin-top: 12px;">
                                     <div style="background: #e8f5e9; border-radius: 40px; padding: 10px; text-align: center;">
@@ -1263,7 +1280,6 @@
                             `;
                         }
                     } else {
-                        // Sin predicción
                         html += `
                             <div style="margin-top: 12px;">
                                 <div style="background: #f5f5f5; border-radius: 40px; padding: 10px; text-align: center; color: #999;">
@@ -1272,21 +1288,19 @@
                             </div>
                         `;
                     }
-                
-                    html += `<div class="recuadro-manual"></div>`;
-                    html += `</div>`; // cierre partido-card
+                    
+                    html += `</div>`;
                 }
                 html += `</div>`;
             }
-
-            // ===== SEPARADOR Y PREDICCIONES DE 16AVOS =====
-            // Verificar si hay predicciones de 16avos guardadas
-            const tienePred16 = Object.keys(predicciones16avos).length > 0;
-
+            html += `</div>`;
+            
+            // ----- SECCIÓN: 16AVOS DE FINAL -----
+            const tienePred16 = Object.keys(predicciones16Map).length > 0;
+            
             if (tienePred16) {
-                html += `<div style="margin-top: 40px; border-top: 2px solid #ffd700; padding-top: 20px;">`;
-                html += `<h2 style="color: #ffd700; text-align: center;">⚽ PREDICCIONES 16AVOS DE FINAL</h2>`;
-                html += `<p><strong>${nombre}</strong> - Predicciones de 16avos</p>`;
+                html += `<div style="margin-top: 40px; border-top: 3px solid #ffd700; padding-top: 20px;">`;
+                html += `<h2 style="color: #ffd700; text-align: center;">⚽ 16AVOS DE FINAL</h2>`;
                 
                 // Agrupar partidos de 16avos por fecha
                 const partidos16PorFecha = {};
@@ -1303,16 +1317,16 @@
                     
                     for (const partido of partidos16PorFecha[fecha]) {
                         const partidoId = String(partido.id);
-                        const prediccion = predicciones16avos[partidoId] || 'No especificado';
-                        const diferencia = diferencias16avos[partidoId] || 'No especificado';
-                        const definicion = definiciones16avos[partidoId] || 'No especificado';
+                        const prediccion = predicciones16Map[partidoId] || 'No especificado';
+                        const diferencia = diferencias16Map[partidoId] || 'No especificado';
+                        const definicion = definiciones16Map[partidoId] || 'No especificado';
                         const horaCDMX = convertirHoraCDMX(partido.horaET);
                         const claseGrupo = obtenerClaseGrupo(partido.grupo);
                         
                         html += `
-                            <div class="partido-card" style="margin-bottom: 15px;">
+                            <div class="partido-card" style="margin-bottom: 15px; border-color: rgba(255,215,0,0.3);">
                                 <div class="partido-info">
-                                    <span class="grupo-tag ${claseGrupo}">${partido.grupo}</span>
+                                    <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
                                     <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
                                     <span>🏟️ ${partido.estadio}</span>
                                 </div>
@@ -1327,10 +1341,22 @@
                                         ${partido.equipo2}
                                     </span>
                                 </div>
-                                <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: rgba(255,215,0,0.05); padding: 10px; border-radius: 8px;">
-                                    <div><strong style="color: #8a9ba8; font-size: 0.7rem;">Ganador</strong><br>${prediccion}</div>
-                                    <div><strong style="color: #8a9ba8; font-size: 0.7rem;">Diferencia</strong><br>${diferencia} gol${diferencia !== '1' ? 'es' : ''}</div>
-                                    <div><strong style="color: #8a9ba8; font-size: 0.7rem;">Definición</strong><br>${definicion}</div>
+                                <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: rgba(255,215,0,0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.1);">
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Ganador</strong>
+                                        <span style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">${prediccion}</span>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Diferencia</strong>
+                                        <span style="color: white; font-size: 0.85rem;">${diferencia} gol${diferencia !== '1' && diferencia !== 'No especificado' ? 'es' : ''}</span>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Definición</strong>
+                                        <span style="color: white; font-size: 0.85rem;">${definicion}</span>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 6px; text-align: center; font-size: 0.6rem; color: #8a9ba8;">
+                                    🔒 Predicción de 16avos de Final
                                 </div>
                             </div>
                         `;
@@ -1339,31 +1365,28 @@
                 }
                 html += `</div>`;
             }
+            
             contenedor.innerHTML = html;
-
-            // Al final de la función, después de contenedor.innerHTML = html;
-            // Posicionar en la fecha actual
+            
+            // Posicionar en la fecha actual (para grupos)
             const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
             const fechas = Object.keys(partidosPorFecha).sort();
             let fechaMasCercana = fechas[0];
-
-            // Buscar la fecha más cercana a hoy (hacia adelante)
+            
             for (const fecha of fechas) {
                 if (fecha >= hoy) {
                     fechaMasCercana = fecha;
                     break;
                 }
             }
-
-            // Posicionar el scroll en el día correspondiente
+            
             setTimeout(() => {
-                const contenedor = document.getElementById('predicciones-container');
                 const diaElemento = contenedor.querySelector(`[data-fecha="${fechaMasCercana}"]`);
                 if (diaElemento) {
                     diaElemento.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }, 300);
-        
+            
         } catch (error) {
             console.error("Error:", error);
             contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
