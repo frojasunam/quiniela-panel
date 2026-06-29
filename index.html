@@ -1083,7 +1083,13 @@
             "2026-06-24": "Miércoles 24 de junio",
             "2026-06-25": "Jueves 25 de junio",
             "2026-06-26": "Viernes 26 de junio",
-            "2026-06-27": "Sábado 27 de junio"
+            "2026-06-27": "Sábado 27 de junio",
+            "2026-06-28": "Domingo 28 de junio",
+            "2026-06-29": "Lunes 29 de junio",
+            "2026-06-30": "Martes 30 de junio",
+            "2026-07-01": "Miércoles 1 de julio",
+            "2026-07-02": "Jueves 2 de julio",
+            "2026-07-03": "Viernes 3 de julio"
         };
         return mapa[fechaStr] || fechaStr;
     }
@@ -1140,7 +1146,55 @@
             htmlDia += `</div>`;
             contenedor.innerHTML += htmlDia;
         });
+        // ========== AGREGAR SECCIÓN DE 16AVOS ==========
+        const partidos16PorFecha = {};
+        partidos16avos.forEach(partido => {
+            if (!partidos16PorFecha[partido.fecha]) partidos16PorFecha[partido.fecha] = [];
+            partidos16PorFecha[partido.fecha].push(partido);
+        });
         
+        const fechas16Ordenadas = Object.keys(partidos16PorFecha).sort();
+        
+        if (fechas16Ordenadas.length > 0) {
+            // Agregar un separador visual
+            contenedor.innerHTML += `<div style="margin: 40px 0 20px 0; border-top: 3px solid #ffd700; padding-top: 20px;">
+                <h2 style="color: #ffd700; text-align: center;">⚽ 16AVOS DE FINAL</h2>
+            </div>`;
+            
+            fechas16Ordenadas.forEach(fecha => {
+                const fechaLegible = formatearFechaCompleta(fecha);
+                const partidosDia = partidos16PorFecha[fecha];
+                
+                let htmlDia = `<div data-fecha="${fecha}" style="margin-bottom: 20px;"><h3>📅 ${fechaLegible}</h3>`;
+                partidosDia.forEach(partido => {
+                    const horaCDMX = convertirHoraCDMX(partido.horaET);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    htmlDia += `
+                        <div class="partido-card" style="border-color: rgba(255,215,0,0.3);">
+                            <div class="partido-info">
+                                <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                                <span>🏟️ ${partido.estadio}</span>
+                            </div>
+                            <div class="equipos">
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                    ${partido.equipo1}
+                                </span>
+                                <span class="vs">vs</span>
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                    ${partido.equipo2}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
+                htmlDia += `</div>`;
+                contenedor.innerHTML += htmlDia;
+            });
+        }
+        // ================================================
         // ========== NUEVO: Posicionar en la fecha actual ==========
         setTimeout(() => {
             const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
@@ -1348,9 +1402,6 @@
                                         <span style="color: white; font-size: 0.85rem;">${definicion}</span>
                                     </div>
                                 </div>
-                                <div style="margin-top: 6px; text-align: center; font-size: 0.6rem; color: #8a9ba8;">
-                                    🔒 Predicción de 16avos de Final
-                                </div>
                             </div>
                         `;
                     }
@@ -1393,90 +1444,164 @@
         contenedor.innerHTML = '<div class="cargando">Cargando resultados...</div>';
         
         try {
+            // ========== CARGAR RESULTADOS DE GRUPOS ==========
             const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultados`;
             const response = await fetch(url);
             const data = await response.json();
+            
+            let html = '';
             
             if (!data.exito) {
                 contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar los resultados'}</p>`;
                 return;
             }
             
-            if (Object.keys(data.resultados).length === 0) {
-                contenedor.innerHTML = `<p>⚠️ Aún no hay resultados registrados.</p>`;
-                return;
-            }
-            
-            // Crear array con resultados y ordenar por fecha (más antiguo primero)
-            const resultadosArray = [];
-            for (const [partidoId, ganador] of Object.entries(data.resultados)) {
-                const partido = partidosCalendario.find(p => p.id === partidoId);
-                if (partido) {
-                    resultadosArray.push({
-                        id: partidoId,
-                        partido: partido,
-                        ganador: ganador,
-                        goles: data.goles[partidoId] || {}
-                    });
-                }
-            }
-            
-            // Ordenar por fecha (más antiguo primero)
-            resultadosArray.sort((a, b) => a.partido.fecha.localeCompare(b.partido.fecha));
-            
-            let html = '';
-            
-            // Guardar el ID del último resultado (más reciente) para hacer scroll
-            let ultimoResultadoId = null;
-            
-            for (let i = 0; i < resultadosArray.length; i++) {
-                const item = resultadosArray[i];
-                const partido = item.partido;
-                const goles = item.goles;
-                const fechaLegible = formatearFechaCompleta(partido.fecha);
-                const claseGrupo = obtenerClaseGrupo(partido.grupo);
-                
-                // Guardar el ID del último resultado (más reciente)
-                if (i === resultadosArray.length - 1) {
-                    ultimoResultadoId = `resultado-${partido.id}`;
+            // ========== PROCESAR RESULTADOS DE GRUPOS ==========
+            if (Object.keys(data.resultados).length > 0) {
+                // Crear array con resultados y ordenar por fecha
+                const resultadosArray = [];
+                for (const [partidoId, ganador] of Object.entries(data.resultados)) {
+                    const partido = partidosCalendario.find(p => p.id === partidoId);
+                    if (partido) {
+                        resultadosArray.push({
+                            id: partidoId,
+                            partido: partido,
+                            ganador: ganador,
+                            goles: data.goles[partidoId] || {}
+                        });
+                    }
                 }
                 
-                html += `
-                    <div id="resultado-${partido.id}" style="margin-bottom: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.06);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
-                            <span class="grupo-tag ${claseGrupo}" style="font-size: 0.7rem;">Grupo ${partido.grupo}</span>
-                            <span style="color: #8a9ba8; font-size: 0.7rem;">📅 ${fechaLegible}</span>
-                        </div>
-                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; margin-top: 4px;">
-                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; overflow: hidden;">
-                                <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${goles.golesLocal || 0}</span>
-                                <span style="color: white; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${partido.equipo1}</span>
-                                ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px; flex-shrink: 0;"></span>` : ''}
+                // Ordenar por fecha
+                resultadosArray.sort((a, b) => a.partido.fecha.localeCompare(b.partido.fecha));
+                
+                // Generar HTML de grupos
+                html += `<h2 style="color: #4CAF50; border-left: 4px solid #4CAF50; padding-left: 10px;">📋 FASE DE GRUPOS</h2>`;
+                
+                for (const item of resultadosArray) {
+                    const partido = item.partido;
+                    const goles = item.goles;
+                    const fechaLegible = formatearFechaCompleta(partido.fecha);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    
+                    html += `
+                        <div id="resultado-${partido.id}" style="margin-bottom: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.06);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+                                <span class="grupo-tag ${claseGrupo}" style="font-size: 0.7rem;">Grupo ${partido.grupo}</span>
+                                <span style="color: #8a9ba8; font-size: 0.7rem;">📅 ${fechaLegible}</span>
                             </div>
-                            <span style="color: white; font-weight: bold; font-size: 0.7rem; text-align: center;">VS</span>
-                            <div style="display: flex; align-items: center; justify-content: flex-start; gap: 4px; overflow: hidden;">
-                                ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px; flex-shrink: 0;"></span>` : ''}
-                                <span style="color: white; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${partido.equipo2}</span>
-                                <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${goles.golesVisitante || 0}</span>
+                            <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; margin-top: 4px;">
+                                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; overflow: hidden;">
+                                    <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${goles.golesLocal || 0}</span>
+                                    <span style="color: white; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${partido.equipo1}</span>
+                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px; flex-shrink: 0;"></span>` : ''}
+                                </div>
+                                <span style="color: white; font-weight: bold; font-size: 0.7rem; text-align: center;">VS</span>
+                                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 4px; overflow: hidden;">
+                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}" style="width: 1.2rem; height: 0.9rem; border-radius: 2px; flex-shrink: 0;"></span>` : ''}
+                                    <span style="color: white; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;">${partido.equipo2}</span>
+                                    <span style="color: #ff4444; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">${goles.golesVisitante || 0}</span>
+                                </div>
+                            </div>
+                            <div style="text-align: center; color: #ff4444; font-size: 0.7rem; margin-top: 6px;">🏆 Ganador: ${item.ganador}</div>
+                        </div>
+                    `;
+                }
+            } else {
+                html += `<p>⚠️ Aún no hay resultados de grupos registrados.</p>`;
+            }
+            
+            // ========== CARGAR RESULTADOS DE 16AVOS ==========
+            const url16 = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultados16avos`;
+            const response16 = await fetch(url16);
+            const data16 = await response16.json();
+            
+            if (data16.exito && Object.keys(data16.resultados).length > 0) {
+                // Agregar separador
+                html += `<div style="margin: 40px 0 20px 0; border-top: 3px solid #ffd700; padding-top: 20px;">
+                    <h2 style="color: #ffd700; text-align: center;">⚽ 16AVOS DE FINAL</h2>
+                </div>`;
+                
+                // Procesar resultados de 16avos
+                const resultados16Array = [];
+                for (const [partidoId, resultado] of Object.entries(data16.resultados)) {
+                    const partido = partidos16avos.find(p => p.id === partidoId);
+                    if (partido) {
+                        resultados16Array.push({
+                            id: partidoId,
+                            partido: partido,
+                            ganador: resultado.ganador,
+                            diferencia: resultado.diferencia,
+                            definicion: resultado.definicion
+                        });
+                    }
+                }
+                
+                // Ordenar por fecha
+                resultados16Array.sort((a, b) => a.partido.fecha.localeCompare(b.partido.fecha));
+                
+                for (const item of resultados16Array) {
+                    const partido = item.partido;
+                    const fechaLegible = formatearFechaCompleta(partido.fecha);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    
+                    html += `
+                        <div id="resultado-${partido.id}" style="margin-bottom: 15px; background: rgba(255,215,0,0.05); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,215,0,0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+                                <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                <span style="color: #8a9ba8; font-size: 0.7rem;">📅 ${fechaLegible}</span>
+                            </div>
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 4px;">
+                                <span style="color: white; font-size: 0.9rem;">${partido.equipo1}</span>
+                                <span style="color: #ffd700; font-weight: bold; font-size: 1.2rem;">VS</span>
+                                <span style="color: white; font-size: 0.9rem;">${partido.equipo2}</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; background: rgba(255,215,0,0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.1);">
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Ganador</strong>
+                                    <span style="color: #ffd700; font-weight: bold;">${item.ganador}</span>
+                                </div>
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Diferencia</strong>
+                                    <span style="color: white;">${item.diferencia} gol${item.diferencia > 1 ? 'es' : ''}</span>
+                                </div>
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Definición</strong>
+                                    <span style="color: white;">${item.definicion}</span>
+                                </div>
                             </div>
                         </div>
-                        <div style="text-align: center; color: #ff4444; font-size: 0.7rem; margin-top: 6px;">🏆 Ganador: ${item.ganador}</div>
-                    </div>
-                `;
+                    `;
+                }
             }
             
             contenedor.innerHTML = html;
             
-            // ========== POSICIONAR EN EL ÚLTIMO RESULTADO (MÁS RECIENTE) ==========
-            setTimeout(() => {
-                if (ultimoResultadoId) {
-                    const elemento = document.getElementById(ultimoResultadoId);
+            // ========== SCROLL A LA FECHA ACTUAL (CDMX) ==========
+            const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+            const todosLosResultados = contenedor.querySelectorAll('[id^="resultado-"]');
+            let ultimoId = null;
+            
+            for (const elemento of todosLosResultados) {
+                const id = elemento.id;
+                const partidoId = id.replace('resultado-', '');
+                // Buscar el partido en grupos y 16avos
+                const partido = partidosCalendario.find(p => p.id === partidoId) || 
+                                partidos16avos.find(p => p.id === partidoId);
+                if (partido && partido.fecha <= hoy) {
+                    ultimoId = id;
+                }
+            }
+            
+            if (ultimoId) {
+                setTimeout(() => {
+                    const elemento = document.getElementById(ultimoId);
                     if (elemento) {
                         elemento.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
-                }
-            }, 300);
-            // ======================================================================
+                }, 300);
+            }
+            // ========================================================
             
         } catch (error) {
             console.error("Error:", error);
