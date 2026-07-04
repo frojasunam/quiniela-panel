@@ -1272,7 +1272,7 @@
             const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
             const todasLasFechas = {};
             partidosCalendario.forEach(p => { todasLasFechas[p.fecha] = true; });
-            partidos16avos.forEach(p => { todasLasFechas[p.fecha] = true; });
+            partidos8vos.forEach(p => { todasLasFechas[p.fecha] = true; });
             const fechas = Object.keys(todasLasFechas).sort();
             
             let fechaMasCercana = fechas[0];
@@ -1561,7 +1561,7 @@
                 const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
                 const todasLasFechas = {};
                 partidosCalendario.forEach(p => { todasLasFechas[p.fecha] = true; });
-                partidos16avos.forEach(p => { todasLasFechas[p.fecha] = true; });
+                partidos8vos.forEach(p => { todasLasFechas[p.fecha] = true; });
                 const fechas = Object.keys(todasLasFechas).sort();
                 
                 let fechaMasCercana = fechas[0];
@@ -2963,15 +2963,11 @@
         // 1. Cargar calendario
         cargarCalendario();
         
-        // 2. Cargar predicciones de grupos para el usuario por defecto (LUEGO ESTO CARGARÁ 16AVOS TAMBIÉN)
+        // 2. Cargar predicciones de grupos para el usuario por defecto
         const nombreDefault = document.getElementById('selector-familiar-pred').value;
         await cargarPredicciones(nombreDefault);
         
-        // 3. Cargar predicciones de 16avos para el usuario por defecto (PARA LA PESTAÑA 16AVOS)
-        // PERO usamos el mismo nombre para mantener consistencia
-        await cargarPredicciones16avos(nombreDefault);
-
-        // 3.5 Cargar predicciones de 8vos para el usuario por defecto
+        // 3. Cargar predicciones de 8vos para el usuario por defecto
         await cargarPredicciones8vos(nombreDefault);
         
         // 4. Cargar resultados
@@ -2979,17 +2975,6 @@
         
         // 5. Inicializar pestañas
         initTabs();
-    });
-
-    // Evento para cuando se cambia el selector de 16avos
-    document.getElementById('selector-familiar-16avos').addEventListener('change', async function() {
-        const nombre = this.value;
-        await cargarPredicciones16avos(nombre);
-        // También actualizar la pestaña de predicciones si está activa
-        const tabPredicciones = document.getElementById('predicciones');
-        if (tabPredicciones.classList.contains('active')) {
-            await cargarPredicciones(nombre);
-        }
     });
 
     document.getElementById('selector-familiar-8vos').addEventListener('change', async function() {
@@ -3005,22 +2990,7 @@
     document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
         const nombre = this.value;
         await cargarPredicciones(nombre);
-        // También actualizar la pestaña de 16avos si está activa
-        const tab16avos = document.getElementById('dieciseisavos');
-        if (tab16avos.classList.contains('active')) {
-            await cargarPredicciones16avos(nombre);
-        }
     });
-
-    // ========================
-    // EVENTOS DE 16AVOS
-    // ========================
-    document.getElementById('btn-cargar-16avos').addEventListener('click', () => {
-        const nombre = document.getElementById('selector-familiar-16avos').value;
-        cargarPredicciones16avos(nombre);
-    });
-
-    document.getElementById('btn-guardar-16avos').addEventListener('click', guardarPredicciones16avos);
 
     // ========================
     // EVENTOS DE 8VOS
