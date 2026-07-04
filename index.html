@@ -1036,28 +1036,6 @@
     ];
 
     // ========================
-    // PARTIDOS DE 16AVOS DE FINAL (CRUCES REALES)
-    // ========================
-    const partidos16avos = [
-        { id: "1", grupo: "16avos", equipo1: "Sudáfrica", equipo2: "Canadá", fecha: "2026-06-28", horaET: "15:00", estadio: "Estadio Los Ángeles" },
-        { id: "2", grupo: "16avos", equipo1: "Alemania", equipo2: "Paraguay", fecha: "2026-06-29", horaET: "16:30", estadio: "Estadio Boston" },
-        { id: "3", grupo: "16avos", equipo1: "Países Bajos", equipo2: "Marruecos", fecha: "2026-06-29", horaET: "21:00", estadio: "Estadio Monterrey" },
-        { id: "4", grupo: "16avos", equipo1: "Brasil", equipo2: "Japón", fecha: "2026-06-29", horaET: "13:00", estadio: "Estadio Houston" },
-        { id: "5", grupo: "16avos", equipo1: "Francia", equipo2: "Suecia", fecha: "2026-06-30", horaET: "17:00", estadio: "Estadio Nueva York Nueva Jersey" },
-        { id: "6", grupo: "16avos", equipo1: "Costa de Marfil", equipo2: "Noruega", fecha: "2026-06-30", horaET: "13:00", estadio: "Estadio Dallas" },
-        { id: "7", grupo: "16avos", equipo1: "México", equipo2: "Ecuador", fecha: "2026-06-30", horaET: "21:00", estadio: "Estadio Ciudad de México" },
-        { id: "8", grupo: "16avos", equipo1: "Inglaterra", equipo2: "RD Congo", fecha: "2026-07-01", horaET: "12:00", estadio: "Estadio Atlanta" },
-        { id: "9", grupo: "16avos", equipo1: "EE.UU.", equipo2: "Bosnia y Herzegovina", fecha: "2026-07-01", horaET: "20:00", estadio: "Estadio Bahía de San Francisco" },
-        { id: "10", grupo: "16avos", equipo1: "Bélgica", equipo2: "Senegal", fecha: "2026-07-01", horaET: "16:00", estadio: "Estadio Seattle" },
-        { id: "11", grupo: "16avos", equipo1: "Portugal", equipo2: "Croacia", fecha: "2026-07-02", horaET: "19:00", estadio: "Estadio Toronto" },
-        { id: "12", grupo: "16avos", equipo1: "España", equipo2: "Austria", fecha: "2026-07-02", horaET: "15:00", estadio: "Estadio Los Ángeles" },
-        { id: "13", grupo: "16avos", equipo1: "Suiza", equipo2: "Argelia", fecha: "2026-07-02", horaET: "23:00", estadio: "Estadio BC Place Vancouver" },
-        { id: "14", grupo: "16avos", equipo1: "Argentina", equipo2: "Cabo Verde", fecha: "2026-07-03", horaET: "18:00", estadio: "Estadio Miami" },
-        { id: "15", grupo: "16avos", equipo1: "Colombia", equipo2: "Ghana", fecha: "2026-07-03", horaET: "21:30", estadio: "Estadio Kansas City" },
-        { id: "16", grupo: "16avos", equipo1: "Australia", equipo2: "Egipto", fecha: "2026-07-03", horaET: "14:00", estadio: "Estadio Dallas" }
-    ];
-
-    // ========================
     // PARTIDOS DE 8VOS DE FINAL
     // ========================
     const partidos8vos = [
@@ -2547,15 +2525,11 @@
         // 1. Cargar calendario
         cargarCalendario();
         
-        // 2. Cargar predicciones de grupos para el usuario por defecto (LUEGO ESTO CARGARÁ 16AVOS TAMBIÉN)
+        // 2. Cargar predicciones de grupos para el usuario por defecto
         const nombreDefault = document.getElementById('selector-familiar-pred').value;
         await cargarPredicciones(nombreDefault);
-        
-        // 3. Cargar predicciones de 16avos para el usuario por defecto (PARA LA PESTAÑA 16AVOS)
-        // PERO usamos el mismo nombre para mantener consistencia
-        await cargarPredicciones16avos(nombreDefault);
 
-        // 3.5 Cargar predicciones de 8vos para el usuario por defecto
+        // 3. Cargar predicciones de 8vos para el usuario por defecto
         await cargarPredicciones8vos(nombreDefault);
         
         // 4. Cargar resultados
