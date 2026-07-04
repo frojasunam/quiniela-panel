@@ -1036,6 +1036,28 @@
     ];
 
     // ========================
+    // PARTIDOS DE 16AVOS DE FINAL (CRUCES REALES)
+    // ========================
+    const partidos16avos = [
+        { id: "1", grupo: "16avos", equipo1: "Sudáfrica", equipo2: "Canadá", fecha: "2026-06-28", horaET: "15:00", estadio: "Estadio Los Ángeles" },
+        { id: "2", grupo: "16avos", equipo1: "Alemania", equipo2: "Paraguay", fecha: "2026-06-29", horaET: "16:30", estadio: "Estadio Boston" },
+        { id: "3", grupo: "16avos", equipo1: "Países Bajos", equipo2: "Marruecos", fecha: "2026-06-29", horaET: "21:00", estadio: "Estadio Monterrey" },
+        { id: "4", grupo: "16avos", equipo1: "Brasil", equipo2: "Japón", fecha: "2026-06-29", horaET: "13:00", estadio: "Estadio Houston" },
+        { id: "5", grupo: "16avos", equipo1: "Francia", equipo2: "Suecia", fecha: "2026-06-30", horaET: "17:00", estadio: "Estadio Nueva York Nueva Jersey" },
+        { id: "6", grupo: "16avos", equipo1: "Costa de Marfil", equipo2: "Noruega", fecha: "2026-06-30", horaET: "13:00", estadio: "Estadio Dallas" },
+        { id: "7", grupo: "16avos", equipo1: "México", equipo2: "Ecuador", fecha: "2026-06-30", horaET: "21:00", estadio: "Estadio Ciudad de México" },
+        { id: "8", grupo: "16avos", equipo1: "Inglaterra", equipo2: "RD Congo", fecha: "2026-07-01", horaET: "12:00", estadio: "Estadio Atlanta" },
+        { id: "9", grupo: "16avos", equipo1: "EE.UU.", equipo2: "Bosnia y Herzegovina", fecha: "2026-07-01", horaET: "20:00", estadio: "Estadio Bahía de San Francisco" },
+        { id: "10", grupo: "16avos", equipo1: "Bélgica", equipo2: "Senegal", fecha: "2026-07-01", horaET: "16:00", estadio: "Estadio Seattle" },
+        { id: "11", grupo: "16avos", equipo1: "Portugal", equipo2: "Croacia", fecha: "2026-07-02", horaET: "19:00", estadio: "Estadio Toronto" },
+        { id: "12", grupo: "16avos", equipo1: "España", equipo2: "Austria", fecha: "2026-07-02", horaET: "15:00", estadio: "Estadio Los Ángeles" },
+        { id: "13", grupo: "16avos", equipo1: "Suiza", equipo2: "Argelia", fecha: "2026-07-02", horaET: "23:00", estadio: "Estadio BC Place Vancouver" },
+        { id: "14", grupo: "16avos", equipo1: "Argentina", equipo2: "Cabo Verde", fecha: "2026-07-03", horaET: "18:00", estadio: "Estadio Miami" },
+        { id: "15", grupo: "16avos", equipo1: "Colombia", equipo2: "Ghana", fecha: "2026-07-03", horaET: "21:30", estadio: "Estadio Kansas City" },
+        { id: "16", grupo: "16avos", equipo1: "Australia", equipo2: "Egipto", fecha: "2026-07-03", horaET: "14:00", estadio: "Estadio Dallas" }
+    ];
+
+    // ========================
     // PARTIDOS DE 8VOS DE FINAL
     // ========================
     const partidos8vos = [
@@ -1148,6 +1170,54 @@
             htmlDia += `</div>`;
             contenedor.innerHTML += htmlDia;
         });
+        
+        // ========== SECCIÓN DE 16AVOS ==========
+        const partidos16PorFecha = {};
+        partidos16avos.forEach(partido => {
+            if (!partidos16PorFecha[partido.fecha]) partidos16PorFecha[partido.fecha] = [];
+            partidos16PorFecha[partido.fecha].push(partido);
+        });
+        
+        const fechas16Ordenadas = Object.keys(partidos16PorFecha).sort();
+        
+        if (fechas16Ordenadas.length > 0) {
+            contenedor.innerHTML += `<div style="margin: 40px 0 20px 0; border-top: 3px solid #ffd700; padding-top: 20px;">
+                <h2 style="color: #ffd700; text-align: center;">⚽ 16AVOS DE FINAL</h2>
+            </div>`;
+            
+            fechas16Ordenadas.forEach(fecha => {
+                const fechaLegible = formatearFechaCompleta(fecha);
+                const partidosDia = partidos16PorFecha[fecha];
+                
+                let htmlDia = `<div data-fecha="${fecha}" style="margin-bottom: 20px;"><h3>📅 ${fechaLegible}</h3>`;
+                partidosDia.forEach(partido => {
+                    const horaCDMX = convertirHoraCDMX(partido.horaET);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    htmlDia += `
+                        <div class="partido-card" style="border-color: rgba(255,215,0,0.3);">
+                            <div class="partido-info">
+                                <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                                <span>🏟️ ${partido.estadio}</span>
+                            </div>
+                            <div class="equipos">
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                    ${partido.equipo1}
+                                </span>
+                                <span class="vs">vs</span>
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                    ${partido.equipo2}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
+                htmlDia += `</div>`;
+                contenedor.innerHTML += htmlDia;
+            });
+        }
 
         // ========== SECCIÓN DE 8VOS ==========
         const partidos8PorFecha = {};
@@ -1349,6 +1419,73 @@
                 html += `</div>`;
             }
             html += `</div>`;
+            
+            // ----- SECCIÓN: 16AVOS DE FINAL -----
+            const tienePred16 = Object.keys(predicciones16avos).length > 0;
+            
+            if (tienePred16) {
+                html += `<div style="margin-top: 40px; border-top: 3px solid #ffd700; padding-top: 20px;">`;
+                html += `<h2 style="color: #ffd700; text-align: center;">⚽ 16AVOS DE FINAL</h2>`;
+                
+                const partidos16PorFecha = {};
+                partidos16avos.forEach(partido => {
+                    if (!partidos16PorFecha[partido.fecha]) partidos16PorFecha[partido.fecha] = [];
+                    partidos16PorFecha[partido.fecha].push(partido);
+                });
+                
+                const fechas16Ordenadas = Object.keys(partidos16PorFecha).sort();
+                
+                for (const fecha of fechas16Ordenadas) {
+                    const fechaLegible = formatearFechaCompleta(fecha);
+                    html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
+                    
+                    for (const partido of partidos16PorFecha[fecha]) {
+                        const partidoId = String(partido.id);
+                        const prediccion = predicciones16avos[partidoId] || 'No especificado';
+                        const diferencia = diferencias16avos[partidoId] || 'No especificado';
+                        const definicion = definiciones16avos[partidoId] || 'No especificado';
+                        const horaCDMX = convertirHoraCDMX(partido.horaET);
+                        const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                        
+                        html += `
+                            <div class="partido-card" style="margin-bottom: 15px; border-color: rgba(255,215,0,0.3);">
+                                <div class="partido-info">
+                                    <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                    <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                                    <span>🏟️ ${partido.estadio}</span>
+                                </div>
+                                <div class="equipos">
+                                    <span class="equipo">
+                                        ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                        ${partido.equipo1}
+                                    </span>
+                                    <span class="vs">vs</span>
+                                    <span class="equipo">
+                                        ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                        ${partido.equipo2}
+                                    </span>
+                                </div>
+                                <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: rgba(255,215,0,0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.1);">
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Ganador</strong>
+                                        <span style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">${prediccion}</span>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Diferencia</strong>
+                                        <span style="color: white; font-size: 0.85rem;">${diferencia} ${diferencia !== 'No especificado' ? 'gol' + (diferencia > 1 ? 'es' : '') : ''}</span>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Definición</strong>
+                                        <span style="color: white; font-size: 0.85rem;">${definicion}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    html += `</div>`;
+                }
+                html += `</div>`;
+            }
 
             // ----- SECCIÓN: 8VOS DE FINAL -----
             const tienePred8 = Object.keys(predicciones8vos).length > 0;
@@ -1518,6 +1655,66 @@
                 html += `<p>⚠️ Aún no hay resultados de grupos registrados.</p>`;
             }
             
+            // ========== CARGAR RESULTADOS DE 16AVOS ==========
+            const url16 = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultados16avos`;
+            const response16 = await fetch(url16);
+            const data16 = await response16.json();
+            
+            if (data16.exito && Object.keys(data16.resultados).length > 0) {
+                html += `<div style="margin: 40px 0 20px 0; border-top: 3px solid #ffd700; padding-top: 20px;">
+                    <h2 style="color: #ffd700; text-align: center;">⚽ 16AVOS DE FINAL</h2>
+                </div>`;
+                
+                const resultados16Array = [];
+                for (const [partidoId, resultado] of Object.entries(data16.resultados)) {
+                    const partido = partidos16avos.find(p => p.id === partidoId);
+                    if (partido) {
+                        resultados16Array.push({
+                            id: partidoId,
+                            partido: partido,
+                            ganador: resultado.ganador,
+                            diferencia: resultado.diferencia,
+                            definicion: resultado.definicion
+                        });
+                    }
+                }
+                
+                resultados16Array.sort((a, b) => a.partido.fecha.localeCompare(b.partido.fecha));
+                
+                for (const item of resultados16Array) {
+                    const partido = item.partido;
+                    const fechaLegible = formatearFechaCompleta(partido.fecha);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    
+                    html += `
+                        <div id="resultado-${partido.id}" data-fecha="${partido.fecha}" style="margin-bottom: 15px; background: rgba(255,215,0,0.05); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,215,0,0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+                                <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                <span style="color: #8a9ba8; font-size: 0.7rem;">📅 ${fechaLegible}</span>
+                            </div>
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 4px;">
+                                <span style="color: white; font-size: 0.9rem;">${partido.equipo1}</span>
+                                <span style="color: #ffd700; font-weight: bold; font-size: 1.2rem;">VS</span>
+                                <span style="color: white; font-size: 0.9rem;">${partido.equipo2}</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; background: rgba(255,215,0,0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.1);">
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Ganador</strong>
+                                    <span style="color: #ffd700; font-weight: bold;">${item.ganador}</span>
+                                </div>
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Diferencia</strong>
+                                    <span style="color: white;">${item.diferencia} gol${item.diferencia > 1 ? 'es' : ''}</span>
+                                </div>
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Definición</strong>
+                                    <span style="color: white;">${item.definicion}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
 
             // ========== CARGAR RESULTADOS DE 8VOS ==========
             const url8 = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultados8vos`;
@@ -2135,11 +2332,259 @@
         }
     }
 
+    // ========================
+    // 16AVOS DE FINAL
+    // ========================
+
+    // Variable para almacenar predicciones de 16avos
+    let predicciones16avos = {};
+    let diferencias16avos = {};
+    let definiciones16avos = {};
+    let prediccionesBloqueadas16avos = {};
+
     // Variables para 8vos
     let predicciones8vos = {};
     let diferencias8vos = {};
     let definiciones8vos = {};
     let prediccionesBloqueadas8vos = {};
+
+    // Función para cargar predicciones de 16avos de un familiar
+    async function cargarPredicciones16avos(nombre) {
+        const contenedor = document.getElementById('dieciseisavos-container');
+        contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
+        
+        try {
+            const url = `${GOOGLE_SCRIPT_URL}?accion=cargarPredicciones16avos&participante=${encodeURIComponent(nombre)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            console.log(`📥 Datos cargados para ${nombre}:`, data);
+            
+            if (!data.exito) {
+                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las predicciones'}</p>`;
+                return;
+            }
+            
+            // ========== SOLUCIÓN: Convertir las claves a STRING ==========
+            const prediccionesTemp = data.predicciones || {};
+            const diferenciasTemp = data.diferencias || {};
+            const definicionesTemp = data.definiciones || {};
+            
+            // Convertir todas las claves a string
+            predicciones16avos = {};
+            diferencias16avos = {};
+            definiciones16avos = {};
+            
+            for (const key in prediccionesTemp) {
+                predicciones16avos[String(key)] = prediccionesTemp[key];
+            }
+            for (const key in diferenciasTemp) {
+                diferencias16avos[String(key)] = diferenciasTemp[key];
+            }
+            for (const key in definicionesTemp) {
+                definiciones16avos[String(key)] = definicionesTemp[key];
+            }
+            // ================================================================
+            
+            // Determinar si está bloqueado
+            const tienePredicciones = Object.keys(predicciones16avos).length > 0;
+            prediccionesBloqueadas16avos[nombre] = tienePredicciones;
+            
+            console.log(`🔒 ${nombre}: ${tienePredicciones ? 'BLOQUEADO' : 'EDITABLE'}`);
+            console.log('📋 predicciones16avos:', predicciones16avos);
+            
+            // Mostrar los partidos con las predicciones cargadas
+            mostrarPartidos16avos(nombre);
+            
+        } catch (error) {
+            console.error("Error:", error);
+            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+        }
+    }
+
+    // Función para mostrar los partidos de 16avos
+    function mostrarPartidos16avos(nombre) {
+        const contenedor = document.getElementById('dieciseisavos-container');
+        
+        if (partidos16avos.length === 0) {
+            contenedor.innerHTML = '<p>⚠️ No hay partidos de 16avos disponibles.</p>';
+            return;
+        }
+        
+        const tienePredicciones = Object.keys(predicciones16avos).length > 0;
+        const estaBloqueado = prediccionesBloqueadas16avos[nombre] || false;
+        
+        let html = `<p><strong>${nombre}</strong> - Partidos de 16avos de Final</p>`;
+        html += `<p style="font-size: 0.8rem; color: ${tienePredicciones ? '#ffd700' : '#8a9ba8'};">
+            ${tienePredicciones ? '🔒 Predicciones guardadas (bloqueadas)' : '📝 Sin predicciones guardadas (editable)'}
+        </p>`;
+        
+        // Agrupar partidos por fecha
+        const partidosPorFecha = {};
+        partidos16avos.forEach(partido => {
+            if (!partidosPorFecha[partido.fecha]) partidosPorFecha[partido.fecha] = [];
+            partidosPorFecha[partido.fecha].push(partido);
+        });
+        
+        const fechasOrdenadas = Object.keys(partidosPorFecha).sort();
+        
+        for (const fecha of fechasOrdenadas) {
+            const fechaLegible = formatearFechaCompleta(fecha);
+            html += `<div style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
+            
+            for (const partido of partidosPorFecha[fecha]) {
+                const partidoId = String(partido.id);
+                const prediccion = predicciones16avos[partidoId] || '';
+                const diferencia = diferencias16avos[partidoId] || '';
+                const definicion = definiciones16avos[partidoId] || '';
+                const horaCDMX = convertirHoraCDMX(partido.horaET);
+                const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                
+                const opcionesDiferencia = [1, 2, 3, '4+'];
+                const disabled = (estaBloqueado || tienePredicciones) ? 'disabled' : '';
+                
+                html += `
+                    <div class="partido-card" style="margin-bottom: 15px;">
+                        <div class="partido-info">
+                            <span class="grupo-tag ${claseGrupo}">${partido.grupo}</span>
+                            <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                            <span>🏟️ ${partido.estadio}</span>
+                        </div>
+                        <div class="equipos">
+                            <span class="equipo">
+                                ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                ${partido.equipo1}
+                            </span>
+                            <span class="vs">vs</span>
+                            <span class="equipo">
+                                ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                ${partido.equipo2}
+                            </span>
+                        </div>
+                        <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="font-size: 0.7rem; color: #8a9ba8;">Ganador</label>
+                                <select id="ganador-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                    <option value="">--</option>
+                                    <option value="${partido.equipo1}" ${prediccion === partido.equipo1 ? 'selected' : ''}>${partido.equipo1}</option>
+                                    <option value="${partido.equipo2}" ${prediccion === partido.equipo2 ? 'selected' : ''}>${partido.equipo2}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; color: #8a9ba8;">Diferencia de goles</label>
+                                <select id="diferencia-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                    <option value="">--</option>
+                                    ${opcionesDiferencia.map(d => `<option value="${d}" ${diferencia == d ? 'selected' : ''}>${d} gol${d > 1 ? 'es' : ''}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; color: #8a9ba8;">Definición</label>
+                                <select id="definicion-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                    <option value="">--</option>
+                                    <option value="90'" ${definicion === "90'" ? 'selected' : ''}>90'</option>
+                                    <option value="120'" ${definicion === "120'" ? 'selected' : ''}>120'</option>
+                                    <option value="Penales" ${definicion === 'Penales' ? 'selected' : ''}>Penales</option>
+                                </select>
+                            </div>
+                        </div>
+                        ${(estaBloqueado || tienePredicciones) ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,215,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ffd700;">🔒 Predicción guardada - No se puede modificar</div>' : ''}
+                    </div>
+                `;
+            }
+            html += `</div>`;
+        }
+        
+        contenedor.innerHTML = html;
+    }
+
+    // Función para guardar predicciones de 16avos
+    async function guardarPredicciones16avos() {
+        const nombre = document.getElementById('selector-familiar-16avos').value;
+
+        if (prediccionesBloqueadas16avos[nombre]) {
+            alert(`🔒 ${nombre} ya tiene sus predicciones de 16avos bloqueadas. No se pueden modificar.`);
+            return;
+        }
+        
+        const confirmacion1 = confirm(`⚠️ ¿Estás SEGURO que quieres guardar tus predicciones de 16avos para ${nombre}?\n\n⚠️ UNA VEZ GUARDADAS YA NO PODRÁS MODIFICARLAS.`);
+        if (!confirmacion1) return;
+        
+        const confirmacion2 = confirm(`Última oportunidad: ¿Guardar predicciones de 16avos de ${nombre} definitivamente?`);
+        if (!confirmacion2) return;
+        
+        const predicciones = {};
+        const diferencias = {};
+        const definiciones = {};
+        
+        for (const partido of partidos16avos) {
+            const partidoId = String(partido.id);
+            const ganadorSelect = document.getElementById(`ganador-${partidoId}`);
+            const diferenciaSelect = document.getElementById(`diferencia-${partidoId}`);
+            const definicionSelect = document.getElementById(`definicion-${partidoId}`);
+            
+            if (!ganadorSelect || !diferenciaSelect || !definicionSelect) continue;
+            
+            const ganador = ganadorSelect.value;
+            if (!ganador) {
+                alert(`❌ Falta seleccionar el ganador para el partido ${partido.equipo1} vs ${partido.equipo2}`);
+                return;
+            }
+            
+            // Guardar con ID como string
+            predicciones[partidoId] = ganador;
+            diferencias[partidoId] = diferenciaSelect.value;
+            definiciones[partidoId] = definicionSelect.value;
+        }
+        
+        try {
+            const payload = {
+                accion: 'guardarPredicciones16avos',
+                participante: nombre,
+                predicciones: predicciones,  // Esto ya tiene IDs como string
+                diferencias: diferencias,
+                definiciones: definiciones
+            };
+            
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            // Actualizar variables globales (YA CONVIERTE A STRING)
+            predicciones16avos = {};
+            diferencias16avos = {};
+            definiciones16avos = {};
+            
+            for (const key in predicciones) {
+                predicciones16avos[String(key)] = predicciones[key];
+            }
+            for (const key in diferencias) {
+                diferencias16avos[String(key)] = diferencias[key];
+            }
+            for (const key in definiciones) {
+                definiciones16avos[String(key)] = definiciones[key];
+            }
+            
+            prediccionesBloqueadas16avos[nombre] = true;
+            
+            alert(`✅ Predicciones de 16avos guardadas para ${nombre}`);
+            
+            // Recargar para mostrar el estado bloqueado
+            await cargarPredicciones16avos(nombre);
+            
+            // Si la pestaña de predicciones está activa, recargarla también
+            const tabPredicciones = document.getElementById('predicciones');
+            if (tabPredicciones.classList.contains('active')) {
+                await cargarPredicciones(nombre);
+            }
+            
+        } catch (error) {
+            console.error("Error:", error);
+            alert(`❌ Error de conexión: ${error.message}`);
+        }
+    }
     
     // ========================
     // FUNCIONES PARA 8VOS
@@ -2437,8 +2882,7 @@
     // NAVEGACIÓN DE PESTAÑAS
     // ========================
     function initTabs() {
-        const tabs = ['calendario', 'predicciones', 'resultados', 'posiciones', 'posiciones-grupos', 'octavos', 'tabla-8vos', 'tabla-grupos'];
-        //                                              ↑ ELIMINADO ↑
+        const tabs = ['calendario', 'predicciones', 'resultados', 'posiciones', 'posiciones-grupos', 'octavos', 'tabla-16avos', 'tabla-8vos', 'tabla-grupos'];
 
         tabs.forEach(tab => {
             const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
@@ -2448,10 +2892,7 @@
                     btn.classList.add('active');
                     
                     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    const content = document.getElementById(tab);
-                    if (content) {
-                        content.classList.add('active');
-                    }
+                    document.getElementById(tab).classList.add('active');
                     
                     if (tab === 'predicciones') {
                         const nombre = document.getElementById('selector-familiar-pred').value;
@@ -2463,14 +2904,12 @@
                     } else if (tab === 'posiciones-grupos') {
                         cargarPosicionesGrupos();
                     } else if (tab === 'octavos') {
-                        const selector = document.getElementById('selector-familiar-8vos');
-                        if (selector) {
-                            cargarPredicciones8vos(selector.value);
-                        }
+                        const nombre = document.getElementById('selector-familiar-8vos').value;
+                        cargarPredicciones8vos(nombre);
+                    } else if (tab === 'tabla-16avos') {
+                        cargarTabla16avos();
                     } else if (tab === 'tabla-8vos') {
-                        if (typeof cargarTabla8vos === 'function') {
-                            cargarTabla8vos();
-                        }
+                        cargarTabla8vos();
                     } else if (tab === 'tabla-grupos') {
                         cargarTablaGrupos();
                     }
@@ -2525,11 +2964,15 @@
         // 1. Cargar calendario
         cargarCalendario();
         
-        // 2. Cargar predicciones de grupos para el usuario por defecto
+        // 2. Cargar predicciones de grupos para el usuario por defecto (LUEGO ESTO CARGARÁ 16AVOS TAMBIÉN)
         const nombreDefault = document.getElementById('selector-familiar-pred').value;
         await cargarPredicciones(nombreDefault);
+        
+        // 3. Cargar predicciones de 16avos para el usuario por defecto (PARA LA PESTAÑA 16AVOS)
+        // PERO usamos el mismo nombre para mantener consistencia
+        await cargarPredicciones16avos(nombreDefault);
 
-        // 3. Cargar predicciones de 8vos para el usuario por defecto
+        // 3.5 Cargar predicciones de 8vos para el usuario por defecto
         await cargarPredicciones8vos(nombreDefault);
         
         // 4. Cargar resultados
@@ -2537,6 +2980,17 @@
         
         // 5. Inicializar pestañas
         initTabs();
+    });
+
+    // Evento para cuando se cambia el selector de 16avos
+    document.getElementById('selector-familiar-16avos').addEventListener('change', async function() {
+        const nombre = this.value;
+        await cargarPredicciones16avos(nombre);
+        // También actualizar la pestaña de predicciones si está activa
+        const tabPredicciones = document.getElementById('predicciones');
+        if (tabPredicciones.classList.contains('active')) {
+            await cargarPredicciones(nombre);
+        }
     });
 
     document.getElementById('selector-familiar-8vos').addEventListener('change', async function() {
@@ -2552,12 +3006,22 @@
     document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
         const nombre = this.value;
         await cargarPredicciones(nombre);
-        // También actualizar la pestaña de 8vos si está activa
-        const tab8vos = document.getElementById('octavos');
-        if (tab8vos && tab8vos.classList.contains('active')) {
-            await cargarPredicciones8vos(nombre);
+        // También actualizar la pestaña de 16avos si está activa
+        const tab16avos = document.getElementById('dieciseisavos');
+        if (tab16avos.classList.contains('active')) {
+            await cargarPredicciones16avos(nombre);
         }
     });
+
+    // ========================
+    // EVENTOS DE 16AVOS
+    // ========================
+    document.getElementById('btn-cargar-16avos').addEventListener('click', () => {
+        const nombre = document.getElementById('selector-familiar-16avos').value;
+        cargarPredicciones16avos(nombre);
+    });
+
+    document.getElementById('btn-guardar-16avos').addEventListener('click', guardarPredicciones16avos);
 
     // ========================
     // EVENTOS DE 8VOS
