@@ -2892,7 +2892,10 @@
                     btn.classList.add('active');
                     
                     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    document.getElementById(tab).classList.add('active');
+                    const content = document.getElementById(tab);
+                    if (content) {
+                        content.classList.add('active');
+                    }
                     
                     if (tab === 'predicciones') {
                         const nombre = document.getElementById('selector-familiar-pred').value;
@@ -2904,12 +2907,16 @@
                     } else if (tab === 'posiciones-grupos') {
                         cargarPosicionesGrupos();
                     } else if (tab === 'octavos') {
-                        const nombre = document.getElementById('selector-familiar-8vos').value;
-                        cargarPredicciones8vos(nombre);
+                        const selector = document.getElementById('selector-familiar-8vos');
+                        if (selector) {
+                            cargarPredicciones8vos(selector.value);
+                        }
                     } else if (tab === 'tabla-16avos') {
                         cargarTabla16avos();
                     } else if (tab === 'tabla-8vos') {
-                        cargarTabla8vos();
+                        if (typeof cargarTabla8vos === 'function') {
+                            cargarTabla8vos();
+                        }
                     } else if (tab === 'tabla-grupos') {
                         cargarTablaGrupos();
                     }
@@ -2983,15 +2990,17 @@
     });
 
     // Evento para cuando se cambia el selector de 16avos
-    document.getElementById('selector-familiar-16avos').addEventListener('change', async function() {
-        const nombre = this.value;
-        await cargarPredicciones16avos(nombre);
-        // También actualizar la pestaña de predicciones si está activa
-        const tabPredicciones = document.getElementById('predicciones');
-        if (tabPredicciones.classList.contains('active')) {
-            await cargarPredicciones(nombre);
-        }
-    });
+    const selector16 = document.getElementById('selector-familiar-16avos');
+    if (selector16) {
+        selector16.addEventListener('change', async function() {
+            const nombre = this.value;
+            await cargarPredicciones16avos(nombre);
+            const tabPredicciones = document.getElementById('predicciones');
+            if (tabPredicciones && tabPredicciones.classList.contains('active')) {
+                await cargarPredicciones(nombre);
+            }
+        });
+    }
 
     document.getElementById('selector-familiar-8vos').addEventListener('change', async function() {
         const nombre = this.value;
@@ -3006,9 +3015,14 @@
     document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
         const nombre = this.value;
         await cargarPredicciones(nombre);
+        // También actualizar la pestaña de 8vos si está activa
+        const tab8vos = document.getElementById('octavos');
+        if (tab8vos && tab8vos.classList.contains('active')) {
+            await cargarPredicciones8vos(nombre);
+        }
         // También actualizar la pestaña de 16avos si está activa
-        const tab16avos = document.getElementById('dieciseisavos');
-        if (tab16avos.classList.contains('active')) {
+        const tab16avos = document.getElementById('tabla-16avos');
+        if (tab16avos && tab16avos.classList.contains('active')) {
             await cargarPredicciones16avos(nombre);
         }
     });
@@ -3016,13 +3030,21 @@
     // ========================
     // EVENTOS DE 16AVOS
     // ========================
-    document.getElementById('btn-cargar-16avos').addEventListener('click', () => {
-        const nombre = document.getElementById('selector-familiar-16avos').value;
-        cargarPredicciones16avos(nombre);
-    });
+    const btnCargar16 = document.getElementById('btn-cargar-16avos');
+    if (btnCargar16) {
+        btnCargar16.addEventListener('click', () => {
+            const selector = document.getElementById('selector-familiar-16avos');
+            if (selector) {
+                cargarPredicciones16avos(selector.value);
+            }
+        });
+    }
 
-    document.getElementById('btn-guardar-16avos').addEventListener('click', guardarPredicciones16avos);
-
+    const btnGuardar16 = document.getElementById('btn-guardar-16avos');
+    if (btnGuardar16) {
+        btnGuardar16.addEventListener('click', guardarPredicciones16avos);
+    }
+    
     // ========================
     // EVENTOS DE 8VOS
     // ========================
