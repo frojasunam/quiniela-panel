@@ -3756,6 +3756,9 @@
         const nombreDefault = document.getElementById('selector-familiar-pred').value;
         await cargarPredicciones(nombreDefault);
         
+        // 3. Cargar predicciones de 8vos para el usuario por defecto
+        await cargarPredicciones8vos(nombreDefault);
+        
         // 4. Cargar predicciones de 4tos y Semis para el usuario por defecto
         await cargarPrediccionesCuartos(nombreDefault);
         
@@ -3766,22 +3769,22 @@
         initTabs();
     });
 
-    document.getElementById('selector-familiar-8vos').addEventListener('change', async function() {
-        const nombre = this.value;
-        await cargarPredicciones8vos(nombre);
-        const tabPredicciones = document.getElementById('predicciones');
-        if (tabPredicciones.classList.contains('active')) {
-            await cargarPredicciones(nombre);
-        }
-    });
-
     // Evento para cuando se cambia el selector de predicciones
     document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
         const nombre = this.value;
         await cargarPredicciones(nombre);
     });
 
-    
+    // ========================
+    // EVENTOS DE 8VOS
+    // ========================
+    document.getElementById('btn-cargar-8vos').addEventListener('click', () => {
+        const nombre = document.getElementById('selector-familiar-8vos').value;
+        cargarPredicciones8vos(nombre);
+    });
+
+    document.getElementById('btn-guardar-8vos').addEventListener('click', guardarPredicciones8vos);
+
     // ========================
     // EVENTOS DE 4TOS Y SEMIS
     // ========================
