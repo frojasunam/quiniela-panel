@@ -895,6 +895,30 @@
     let resultadosGoles = {};
     const participantes = ["Luis", "Fernanda", "Gustavo", "Maru", "Isaac", "Lorena", "David", "Francisco"];
 
+    // ========================
+    // DIAGNÓSTICO DE PESTAÑAS
+    // ========================
+
+    console.log('🔍 Verificando elementos de pestañas...');
+
+    // Verificar que los botones existen
+    var botones = document.querySelectorAll('.tab-btn');
+    console.log('Botones encontrados:', botones.length);
+
+    // Verificar que los contenidos existen
+    var contenidos = document.querySelectorAll('.tab-content');
+    console.log('Contenidos encontrados:', contenidos.length);
+
+    // Mostrar cada botón y su data-tab
+    botones.forEach(function(btn, i) {
+        console.log('Botón ' + i + ':', btn.textContent.trim(), 'data-tab="' + btn.getAttribute('data-tab') + '"');
+    });
+
+    // Mostrar cada contenido y su ID
+    contenidos.forEach(function(content, i) {
+        console.log('Contenido ' + i + ':', 'id="' + content.id + '"');
+    });
+
     async function cargarTodasLasPredicciones() {
         try {
             const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerTodasLasPredicciones`;
@@ -3655,21 +3679,42 @@
     function initTabs() {
         console.log('📑 Inicializando pestañas...');
         
-        // Seleccionar TODOS los botones de pestañas
+        // Obtener todos los botones
         const botones = document.querySelectorAll('.tab-btn');
-        console.log(`📌 Encontrados ${botones.length} botones de pestañas`);
+        console.log('Botones encontrados:', botones.length);
         
-        if (botones.length === 0) {
-            console.error('❌ No se encontraron botones de pestañas');
-            return;
-        }
-        
-        botones.forEach((btn, index) => {
-            // Eliminar event listeners anteriores (para evitar duplicados)
-            btn.removeEventListener('click', manejarClickPestana);
-            // Agregar el nuevo
-            btn.addEventListener('click', manejarClickPestana);
+        // Para cada botón, asignar evento de clic
+        botones.forEach(function(btn) {
+            btn.onclick = function() {
+                // Obtener el ID de la pestaña
+                var tabId = this.getAttribute('data-tab');
+                console.log('Click en pestaña:', tabId);
+                
+                // Quitar active de todos los botones
+                document.querySelectorAll('.tab-btn').forEach(function(b) {
+                    b.classList.remove('active');
+                });
+                
+                // Activar este botón
+                this.classList.add('active');
+                
+                // Ocultar todos los contenidos
+                document.querySelectorAll('.tab-content').forEach(function(content) {
+                    content.classList.remove('active');
+                });
+                
+                // Mostrar el contenido seleccionado
+                var contenido = document.getElementById(tabId);
+                if (contenido) {
+                    contenido.classList.add('active');
+                    console.log('✅ Contenido mostrado:', tabId);
+                } else {
+                    console.error('❌ No se encontró el contenido:', tabId);
+                }
+            };
         });
+        
+        console.log('✅ Pestañas inicializadas');
     }
 
     // Función separada para manejar el click
