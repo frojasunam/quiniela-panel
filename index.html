@@ -3484,12 +3484,6 @@
             return;
         }
         
-        // Verificar que las semifinales estén desbloqueadas antes de permitir guardar
-        if (!semisDesbloqueadas) {
-            alert(`⏳ Las semifinales aún no están definidas. Espera a que se ingresen los resultados de 4tos.`);
-            return;
-        }
-        
         const confirmacion1 = confirm(`⚠️ ¿Estás SEGURO que quieres guardar tus predicciones de 4tos y Semis para ${nombre}?\n\n⚠️ UNA VEZ GUARDADAS YA NO PODRÁS MODIFICARLAS.`);
         if (!confirmacion1) return;
         
