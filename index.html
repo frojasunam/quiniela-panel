@@ -1161,7 +1161,16 @@
             "2026-07-04": "Sábado 4 de julio",
             "2026-07-05": "Domingo 5 de julio",
             "2026-07-06": "Lunes 6 de julio",
-            "2026-07-07": "Martes 7 de julio"
+            "2026-07-07": "Martes 7 de julio",
+            "2026-07-08": "Miércoles 8 de julio",
+            "2026-07-09": "Jueves 9 de julio",
+            "2026-07-10": "Viernes 10 de julio",
+            "2026-07-11": "Sábado 11 de julio",
+            "2026-07-12": "Domingo 12 de julio",
+            "2026-07-13": "Lunes 13 de julio",
+            "2026-07-14": "Martes 14 de julio",
+            "2026-07-15": "Miércoles 15 de julio",
+            "2026-07-16": "Jueves 16 de julio"
         };
         return mapa[fechaStr] || fechaStr;
     }
@@ -2958,18 +2967,16 @@
     // ========================
 
     async function cargarPredicciones8vos(nombre) {
-        const contenedor = document.getElementById('octavos-container');
-        contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
-        
+        // Ya no usa contenedor, solo guarda los datos en variables globales
         try {
             const url = `${GOOGLE_SCRIPT_URL}?accion=cargarPredicciones8vos&participante=${encodeURIComponent(nombre)}`;
             const response = await fetch(url);
             const data = await response.json();
             
-            console.log(`📥 Datos cargados para ${nombre}:`, data);
+            console.log(`📥 Datos de 8vos cargados para ${nombre}:`, data);
             
             if (!data.exito) {
-                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las predicciones'}</p>`;
+                console.log('⚠️ No se pudieron cargar predicciones de 8vos');
                 return;
             }
             
@@ -2977,6 +2984,7 @@
             const diferenciasTemp = data.diferencias || {};
             const definicionesTemp = data.definiciones || {};
             
+            // Guardar en variables globales (se usan en cargarPredicciones)
             predicciones8vos = {};
             diferencias8vos = {};
             definiciones8vos = {};
@@ -2991,17 +2999,10 @@
                 definiciones8vos[String(key)] = definicionesTemp[key];
             }
             
-            const tienePredicciones = Object.keys(predicciones8vos).length > 0;
-            prediccionesBloqueadas8vos[nombre] = tienePredicciones;
-            
-            console.log(`🔒 ${nombre}: ${tienePredicciones ? 'BLOQUEADO' : 'EDITABLE'}`);
-            console.log('📋 predicciones8vos:', predicciones8vos);
-            
-            mostrarPartidos8vos(nombre);
+            console.log(`✅ Predicciones de 8vos cargadas: ${Object.keys(predicciones8vos).length}`);
             
         } catch (error) {
-            console.error("Error:", error);
-            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+            console.error("Error cargando 8vos:", error);
         }
     }
 
@@ -3250,31 +3251,23 @@
     // ========================
 
     async function cargarPrediccionesCuartos(nombre) {
-        const contenedor = document.getElementById('cuartos-container');
-        if (!contenedor) {
-            console.error("❌ No se encontró el contenedor 'cuartos-container'");
-            return;
-        }
-        contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
-        
         try {
-            // Cargar predicciones de cuartos desde el backend
             const url = `${GOOGLE_SCRIPT_URL}?accion=cargarPrediccionesCuartos&participante=${encodeURIComponent(nombre)}`;
             const response = await fetch(url);
             const data = await response.json();
             
-            console.log(`📥 Datos cargados para ${nombre}:`, data);
+            console.log(`📥 Datos de 4tos cargados para ${nombre}:`, data);
             
             if (!data.exito) {
-                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las predicciones'}</p>`;
+                console.log('⚠️ No se pudieron cargar predicciones de 4tos');
                 return;
             }
             
-            // Guardar datos en variables globales
             const prediccionesTemp = data.predicciones || {};
             const diferenciasTemp = data.diferencias || {};
             const definicionesTemp = data.definiciones || {};
             
+            // Guardar en variables globales (se usan en cargarPredicciones)
             prediccionesCuartos = {};
             diferenciasCuartos = {};
             definicionesCuartos = {};
@@ -3289,24 +3282,21 @@
                 definicionesCuartos[String(key)] = definicionesTemp[key];
             }
             
-            // Verificar si las semifinales están desbloqueadas
-            // Esto se determina revisando si hay resultados de 4tos en el backend
             semisDesbloqueadas = data.semisDesbloqueadas || false;
-            
-            // Determinar si está bloqueado (tiene predicciones guardadas)
             const tienePredicciones = Object.keys(prediccionesCuartos).length > 0;
             prediccionesBloqueadasCuartos[nombre] = tienePredicciones;
             
-            console.log(`🔒 ${nombre}: ${tienePredicciones ? 'BLOQUEADO' : 'EDITABLE'}`);
-            console.log('📋 prediccionesCuartos:', prediccionesCuartos);
-            console.log('🔓 Semis desbloqueadas:', semisDesbloqueadas);
+            console.log(`✅ Predicciones de 4tos cargadas: ${Object.keys(prediccionesCuartos).length}`);
+            console.log(`🔓 Semis desbloqueadas: ${semisDesbloqueadas}`);
             
-            // Mostrar los partidos
-            mostrarPartidosCuartos(nombre);
+            // Mostrar en la pestaña de cuartos (solo si existe el contenedor)
+            const contenedor = document.getElementById('cuartos-container');
+            if (contenedor) {
+                mostrarPartidosCuartos(nombre);
+            }
             
         } catch (error) {
-            console.error("Error:", error);
-            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+            console.error("Error cargando 4tos:", error);
         }
     }
 
@@ -3812,43 +3802,40 @@
     // INICIALIZACIÓN COMPLETA
     // ========================
 
-    // Al cargar la página
+    // ========================
+    // INICIALIZACIÓN COMPLETA
+    // ========================
+
     document.addEventListener('DOMContentLoaded', async function() {
-        // 1. Cargar calendario
+        console.log('🚀 Inicializando...');
+        
+        // 1. Inicializar pestañas
+        initTabs();
+        
+        // 2. Cargar calendario
         cargarCalendario();
         
-        // 2. Cargar predicciones de grupos para el usuario por defecto
+        // 3. Cargar TODAS las predicciones para el usuario por defecto
         const nombreDefault = document.getElementById('selector-familiar-pred').value;
+        
+        // Cargar predicciones de grupos
         await cargarPredicciones(nombreDefault);
         
-        // 3. Cargar predicciones de 8vos para el usuario por defecto
+        // Cargar predicciones de 16avos (ya está en cargarPredicciones)
+        // Cargar predicciones de 8vos (ahora modifica la función para que solo guarde datos)
         await cargarPredicciones8vos(nombreDefault);
         
-        // 4. Cargar predicciones de 4tos y Semis para el usuario por defecto
+        // Cargar predicciones de 4tos
         await cargarPrediccionesCuartos(nombreDefault);
         
-        // 5. Cargar resultados
+        // 4. Cargar resultados
         cargarResultados();
         
-        // 6. Inicializar pestañas
-        initTabs();
+        // 5. Recargar predicciones para mostrar todo junto
+        await cargarPredicciones(nombreDefault);
+        
+        console.log('✅ Inicialización completa');
     });
-
-    // Evento para cuando se cambia el selector de predicciones
-    document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
-        const nombre = this.value;
-        await cargarPredicciones(nombre);
-    });
-
-    // ========================
-    // EVENTOS DE 8VOS
-    // ========================
-    document.getElementById('btn-cargar-8vos').addEventListener('click', () => {
-        const nombre = document.getElementById('selector-familiar-8vos').value;
-        cargarPredicciones8vos(nombre);
-    });
-
-    document.getElementById('btn-guardar-8vos').addEventListener('click', guardarPredicciones8vos);
 
     // ========================
     // EVENTOS DE 4TOS Y SEMIS
