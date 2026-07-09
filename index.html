@@ -3685,15 +3685,21 @@
                             console.error('❌ selector-familiar-cuartos no encontrado');
                         }
                     } else if (tab === 'tabla-16avos') {
-                        cargarTabla16avos();
+                        if (typeof cargarTabla16avos === 'function') {
+                            cargarTabla16avos();
+                        }
                     } else if (tab === 'tabla-8vos') {
-                        cargarTabla8vos();
+                        if (typeof cargarTabla8vos === 'function') {
+                            cargarTabla8vos();
+                        }
                     } else if (tab === 'tabla-cuartos') {
                         if (typeof cargarTablaCuartos === 'function') {
                             cargarTablaCuartos();
                         }
                     } else if (tab === 'tabla-grupos') {
-                        cargarTablaGrupos();
+                        if (typeof cargarTablaGrupos === 'function') {
+                            cargarTablaGrupos();
+                        }
                     }
                 });
             }
