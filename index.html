@@ -3484,17 +3484,17 @@
             return;
         }
         
-        const confirmacion1 = confirm(`⚠️ ¿Estás SEGURO que quieres guardar tus predicciones de 4tos y Semis para ${nombre}?\n\n⚠️ UNA VEZ GUARDADAS YA NO PODRÁS MODIFICARLAS.`);
+        const confirmacion1 = confirm(`⚠️ ¿Estás SEGURO que quieres guardar tus predicciones de 4tos${semisDesbloqueadas ? ' y Semis' : ''} para ${nombre}?\n\n⚠️ UNA VEZ GUARDADAS YA NO PODRÁS MODIFICARLAS.`);
         if (!confirmacion1) return;
         
-        const confirmacion2 = confirm(`Última oportunidad: ¿Guardar predicciones de 4tos y Semis de ${nombre} definitivamente?`);
+        const confirmacion2 = confirm(`Última oportunidad: ¿Guardar predicciones de 4tos${semisDesbloqueadas ? ' y Semis' : ''} de ${nombre} definitivamente?`);
         if (!confirmacion2) return;
         
         const predicciones = {};
         const diferencias = {};
         const definiciones = {};
         
-        // ========== RECOPILAR PREDICCIONES DE 4TOS ==========
+        // ========== RECOPILAR PREDICCIONES DE 4TOS (SIEMPRE) ==========
         for (const partido of partidosCuartos) {
             const partidoId = String(partido.id);
             const ganadorSelect = document.getElementById(`ganadorC-${partidoId}`);
@@ -3514,24 +3514,26 @@
             definiciones[partidoId] = definicionSelect.value;
         }
         
-        // ========== RECOPILAR PREDICCIONES DE SEMIFINALES ==========
-        for (const partido of partidosSemis) {
-            const partidoId = String(partido.id);
-            const ganadorSelect = document.getElementById(`ganadorC-${partidoId}`);
-            const diferenciaSelect = document.getElementById(`diferenciaC-${partidoId}`);
-            const definicionSelect = document.getElementById(`definicionC-${partidoId}`);
-            
-            if (!ganadorSelect || !diferenciaSelect || !definicionSelect) continue;
-            
-            const ganador = ganadorSelect.value;
-            if (!ganador) {
-                alert(`❌ Falta seleccionar el ganador para la semifinal ${partido.equipo1} vs ${partido.equipo2}`);
-                return;
+        // ========== RECOPILAR PREDICCIONES DE SEMIFINALES (SOLO SI ESTÁN DESBLOQUEADAS) ==========
+        if (semisDesbloqueadas) {
+            for (const partido of partidosSemis) {
+                const partidoId = String(partido.id);
+                const ganadorSelect = document.getElementById(`ganadorC-${partidoId}`);
+                const diferenciaSelect = document.getElementById(`diferenciaC-${partidoId}`);
+                const definicionSelect = document.getElementById(`definicionC-${partidoId}`);
+                
+                if (!ganadorSelect || !diferenciaSelect || !definicionSelect) continue;
+                
+                const ganador = ganadorSelect.value;
+                if (!ganador) {
+                    alert(`❌ Falta seleccionar el ganador para la semifinal ${partido.equipo1} vs ${partido.equipo2}`);
+                    return;
+                }
+                
+                predicciones[partidoId] = ganador;
+                diferencias[partidoId] = diferenciaSelect.value;
+                definiciones[partidoId] = definicionSelect.value;
             }
-            
-            predicciones[partidoId] = ganador;
-            diferencias[partidoId] = diferenciaSelect.value;
-            definiciones[partidoId] = definicionSelect.value;
         }
         
         try {
@@ -3567,7 +3569,7 @@
             
             prediccionesBloqueadasCuartos[nombre] = true;
             
-            alert(`✅ Predicciones de 4tos y Semis guardadas para ${nombre}`);
+            alert(`✅ Predicciones de 4tos${semisDesbloqueadas ? ' y Semis' : ''} guardadas para ${nombre}`);
             
             // Recargar para mostrar el estado bloqueado
             await cargarPrediccionesCuartos(nombre);
