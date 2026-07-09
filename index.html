@@ -3879,16 +3879,6 @@
         });
     }
 
-    // Evento para cuando se cambia el selector de predicciones
-    document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
-        const nombre = this.value;
-        await cargarPredicciones(nombre);
-        const tabCuartos = document.getElementById('cuartos');
-        if (tabCuartos && tabCuartos.classList.contains('active')) {
-            await cargarPrediccionesCuartos(nombre);
-        }
-    });
-
 </script>
 </body>
 </html>
