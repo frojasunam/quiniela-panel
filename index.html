@@ -3663,7 +3663,10 @@
                     btn.classList.add('active');
                     
                     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    document.getElementById(tab).classList.add('active');
+                    const content = document.getElementById(tab);
+                    if (content) {
+                        content.classList.add('active');
+                    }
                     
                     if (tab === 'predicciones') {
                         const nombre = document.getElementById('selector-familiar-pred').value;
@@ -3675,14 +3678,20 @@
                     } else if (tab === 'posiciones-grupos') {
                         cargarPosicionesGrupos();
                     } else if (tab === 'cuartos') {
-                        const nombre = document.getElementById('selector-familiar-cuartos').value;
-                        cargarPrediccionesCuartos(nombre);
+                        const selector = document.getElementById('selector-familiar-cuartos');
+                        if (selector) {
+                            cargarPrediccionesCuartos(selector.value);
+                        } else {
+                            console.error('❌ selector-familiar-cuartos no encontrado');
+                        }
                     } else if (tab === 'tabla-16avos') {
                         cargarTabla16avos();
                     } else if (tab === 'tabla-8vos') {
                         cargarTabla8vos();
                     } else if (tab === 'tabla-cuartos') {
-                        cargarTablaCuartos();
+                        if (typeof cargarTablaCuartos === 'function') {
+                            cargarTablaCuartos();
+                        }
                     } else if (tab === 'tabla-grupos') {
                         cargarTablaGrupos();
                     }
