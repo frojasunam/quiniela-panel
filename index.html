@@ -3653,57 +3653,77 @@
     // NAVEGACIÓN DE PESTAÑAS
     // ========================
     function initTabs() {
-        const tabs = ['calendario', 'predicciones', 'resultados', 'posiciones', 'posiciones-grupos', 'cuartos', 'tabla-16avos', 'tabla-8vos', 'tabla-cuartos', 'tabla-grupos'];
-
-        tabs.forEach(tab => {
-            const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    
-                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-                    const content = document.getElementById(tab);
-                    if (content) {
-                        content.classList.add('active');
-                    }
-                    
-                    if (tab === 'predicciones') {
-                        const nombre = document.getElementById('selector-familiar-pred').value;
-                        cargarPredicciones(nombre);
-                    } else if (tab === 'resultados') {
-                        cargarResultados();
-                    } else if (tab === 'posiciones') {
-                        cargarTablaPosiciones();
-                    } else if (tab === 'posiciones-grupos') {
-                        cargarPosicionesGrupos();
-                    } else if (tab === 'cuartos') {
-                        const selector = document.getElementById('selector-familiar-cuartos');
-                        if (selector) {
-                            cargarPrediccionesCuartos(selector.value);
-                        } else {
-                            console.error('❌ selector-familiar-cuartos no encontrado');
-                        }
-                    } else if (tab === 'tabla-16avos') {
-                        if (typeof cargarTabla16avos === 'function') {
-                            cargarTabla16avos();
-                        }
-                    } else if (tab === 'tabla-8vos') {
-                        if (typeof cargarTabla8vos === 'function') {
-                            cargarTabla8vos();
-                        }
-                    } else if (tab === 'tabla-cuartos') {
-                        if (typeof cargarTablaCuartos === 'function') {
-                            cargarTablaCuartos();
-                        }
-                    } else if (tab === 'tabla-grupos') {
-                        if (typeof cargarTablaGrupos === 'function') {
-                            cargarTablaGrupos();
-                        }
-                    }
-                });
-            }
+        console.log('📑 Inicializando pestañas...');
+        
+        // Seleccionar TODOS los botones de pestañas
+        const botones = document.querySelectorAll('.tab-btn');
+        console.log(`📌 Encontrados ${botones.length} botones de pestañas`);
+        
+        if (botones.length === 0) {
+            console.error('❌ No se encontraron botones de pestañas');
+            return;
+        }
+        
+        botones.forEach((btn, index) => {
+            // Eliminar event listeners anteriores (para evitar duplicados)
+            btn.removeEventListener('click', manejarClickPestana);
+            // Agregar el nuevo
+            btn.addEventListener('click', manejarClickPestana);
         });
+    }
+
+    // Función separada para manejar el click
+    function manejarClickPestana(e) {
+        // Quitar clase active de todos los botones
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        // Agregar clase active al botón clickeado
+        this.classList.add('active');
+        
+        // Obtener el ID de la pestaña a mostrar
+        const tabId = this.getAttribute('data-tab');
+        console.log(`👆 Click en pestaña: ${tabId}`);
+        
+        // Ocultar todos los contenidos
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Mostrar el contenido correspondiente
+        const content = document.getElementById(tabId);
+        if (content) {
+            content.classList.add('active');
+            console.log(`✅ Pestaña activada: ${tabId}`);
+        } else {
+            console.error(`❌ No se encontró el contenido con ID: ${tabId}`);
+            return;
+        }
+        
+        // Cargar datos según la pestaña
+        if (tabId === 'calendario') {
+            cargarCalendario();
+        } else if (tabId === 'predicciones') {
+            const nombre = document.getElementById('selector-familiar-pred').value;
+            cargarPredicciones(nombre);
+        } else if (tabId === 'resultados') {
+            cargarResultados();
+        } else if (tabId === 'posiciones') {
+            cargarTablaPosiciones();
+        } else if (tabId === 'posiciones-grupos') {
+            cargarPosicionesGrupos();
+        } else if (tabId === 'cuartos') {
+            const selector = document.getElementById('selector-familiar-cuartos');
+            if (selector) {
+                cargarPrediccionesCuartos(selector.value);
+            }
+        } else if (tabId === 'tabla-16avos') {
+            cargarTabla16avos();
+        } else if (tabId === 'tabla-8vos') {
+            cargarTabla8vos();
+        } else if (tabId === 'tabla-cuartos') {
+            cargarTablaCuartos();
+        } else if (tabId === 'tabla-grupos') {
+            cargarTablaGrupos();
+        }
     }
 
     // ========================
