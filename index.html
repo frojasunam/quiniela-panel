@@ -744,9 +744,10 @@
         <button class="tab-btn" data-tab="resultados">🏆 Resultados</button>
         <button class="tab-btn" data-tab="posiciones">📊 Tabla de Posiciones</button>
         <button class="tab-btn" data-tab="posiciones-grupos">📊 Posiciones de Grupos</button>
-        <button class="tab-btn" data-tab="octavos">⚽ 8vos</button>
+        <button class="tab-btn" data-tab="cuartos">⚽ 4tos y Semis</button>
         <button class="tab-btn" data-tab="tabla-16avos">📊 Tabla 16avos</button>
         <button class="tab-btn" data-tab="tabla-8vos">📊 Tabla 8vos</button>
+        <button class="tab-btn" data-tab="tabla-cuartos">📊 Tabla 4tos & Semis</button>
         <button class="tab-btn" data-tab="tabla-grupos">📊 Tabla Grupos</button>
     </div>
     
@@ -833,12 +834,12 @@
         <div id="posiciones-grupos-container" class="cargando">Cargando posiciones...</div>
     </div>
 
-    <!-- Pestaña 8vos -->
-    <div id="octavos" class="tab-content">
-        <h2>⚽ 8vos de Final - Predicciones</h2>
+    <!-- Pestaña 4tos y Semis -->
+    <div id="cuartos" class="tab-content">
+        <h2>⚽ 4tos y Semis - Predicciones</h2>
         <div class="selector-familiar">
             <label>Seleccionar integrante:</label>
-            <select id="selector-familiar-8vos">
+            <select id="selector-familiar-cuartos">
                 <option value="Luis">Luis</option>
                 <option value="Fernanda">Fernanda</option>
                 <option value="Gustavo">Gustavo</option>
@@ -848,10 +849,10 @@
                 <option value="David">David</option>
                 <option value="Francisco">Francisco</option>
             </select>
-            <button id="btn-cargar-8vos">📋 Cargar mis predicciones</button>
-            <button id="btn-guardar-8vos">💾 Guardar mis predicciones</button>
+            <button id="btn-cargar-cuartos">📋 Cargar mis predicciones</button>
+            <button id="btn-guardar-cuartos">💾 Guardar mis predicciones</button>
         </div>
-        <div id="octavos-container" class="cargando">Cargando partidos de 8vos...</div>
+        <div id="cuartos-container" class="cargando">Cargando partidos de 4tos y Semis...</div>
     </div>
 
     <div id="tabla-16avos" class="tab-content">
@@ -862,6 +863,11 @@
     <div id="tabla-8vos" class="tab-content">
         <h2>📊 Tabla 8vos de Final</h2>
         <div id="tabla-8vos-container" class="cargando">Cargando tabla de 8vos...</div>
+    </div>
+
+    <div id="tabla-cuartos" class="tab-content">
+        <h2>📊 Tabla 4tos & Semis</h2>
+        <div id="tabla-cuartos-container" class="cargando">Cargando tabla de 4tos y Semis...</div>
     </div>
 
     <div id="tabla-grupos" class="tab-content">
@@ -1070,6 +1076,24 @@
         { id: "7", grupo: "8vos", equipo1: "Argentina", equipo2: "Egipto", fecha: "2026-07-07", horaET: "12:00", estadio: "Estadio Atlanta" },
         { id: "8", grupo: "8vos", equipo1: "Suiza", equipo2: "Colombia", fecha: "2026-07-07", horaET: "16:00", estadio: "Estadio BC Place Vancouver" }
     ];
+
+    // ========================
+    // PARTIDOS DE 4TOS DE FINAL (CUARTOS)
+    // ========================
+    const partidosCuartos = [
+        { id: "1", grupo: "4tos", equipo1: "Francia", equipo2: "Marruecos", fecha: "2026-07-09", horaET: "16:00", estadio: "Estadio Boston" },
+        { id: "2", grupo: "4tos", equipo1: "España", equipo2: "Bélgica", fecha: "2026-07-10", horaET: "15:00", estadio: "Estadio Los Ángeles" },
+        { id: "3", grupo: "4tos", equipo1: "Noruega", equipo2: "Inglaterra", fecha: "2026-07-11", horaET: "17:00", estadio: "Estadio Miami" },
+        { id: "4", grupo: "4tos", equipo1: "Argentina", equipo2: "Suiza", fecha: "2026-07-11", horaET: "21:00", estadio: "Estadio Kansas City" }
+    ];
+
+    // ========================
+    // PARTIDOS DE SEMIFINALES (BLOQUEADOS HASTA QUE SE DEFINAN)
+    // ========================
+    const partidosSemis = [
+        { id: "5", grupo: "Semis", equipo1: "Ganador 4tos 1", equipo2: "Ganador 4tos 2", fecha: "TBD", horaET: "TBD", estadio: "TBD" },
+        { id: "6", grupo: "Semis", equipo1: "Ganador 4tos 3", equipo2: "Ganador 4tos 4", fecha: "TBD", horaET: "TBD", estadio: "TBD" }
+    ];
     
     // ========================
     // FUNCIONES AUXILIARES
@@ -1266,6 +1290,106 @@
                 contenedor.innerHTML += htmlDia;
             });
         }
+
+        // ========== SECCIÓN DE 4TOS Y SEMIS ==========
+        const partidos4PorFecha = {};
+        partidosCuartos.forEach(partido => {
+            if (!partidos4PorFecha[partido.fecha]) partidos4PorFecha[partido.fecha] = [];
+            partidos4PorFecha[partido.fecha].push(partido);
+        });
+
+        const fechas4Ordenadas = Object.keys(partidos4PorFecha).sort();
+
+        if (fechas4Ordenadas.length > 0) {
+            contenedor.innerHTML += `<div style="margin: 40px 0 20px 0; border-top: 3px solid #ffd700; padding-top: 20px;">
+                <h2 style="color: #ffd700; text-align: center;">⚽ 4TOS DE FINAL</h2>
+            </div>`;
+            
+            fechas4Ordenadas.forEach(fecha => {
+                const fechaLegible = formatearFechaCompleta(fecha);
+                const partidosDia = partidos4PorFecha[fecha];
+                
+                let htmlDia = `<div data-fecha="${fecha}" style="margin-bottom: 20px;"><h3>📅 ${fechaLegible}</h3>`;
+                partidosDia.forEach(partido => {
+                    const horaCDMX = convertirHoraCDMX(partido.horaET);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    htmlDia += `
+                        <div class="partido-card" style="border-color: rgba(255,215,0,0.3);">
+                            <div class="partido-info">
+                                <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                                <span>🏟️ ${partido.estadio}</span>
+                            </div>
+                            <div class="equipos">
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                    ${partido.equipo1}
+                                </span>
+                                <span class="vs">vs</span>
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                    ${partido.equipo2}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
+                htmlDia += `</div>`;
+                contenedor.innerHTML += htmlDia;
+            });
+        }
+
+        // ========== SECCIÓN DE SEMIFINALES (si están definidas) ==========
+        // Verificar si las semifinales están desbloqueadas (tienen equipos definidos)
+        const semisDefinidas = partidosSemis[0].equipo1 !== "Ganador 4tos 1";
+        
+        if (semisDefinidas) {
+            contenedor.innerHTML += `<div style="margin: 40px 0 20px 0; border-top: 3px solid #ffd700; padding-top: 20px;">
+                <h2 style="color: #ffd700; text-align: center;">⚽ SEMIFINALES</h2>
+            </div>`;
+            
+            // Agrupar semifinales por fecha
+            const partidosSemisPorFecha = {};
+            partidosSemis.forEach(partido => {
+                if (!partidosSemisPorFecha[partido.fecha]) partidosSemisPorFecha[partido.fecha] = [];
+                partidosSemisPorFecha[partido.fecha].push(partido);
+            });
+            
+            const fechasSemisOrdenadas = Object.keys(partidosSemisPorFecha).sort();
+            
+            fechasSemisOrdenadas.forEach(fecha => {
+                const fechaLegible = formatearFechaCompleta(fecha);
+                const partidosDia = partidosSemisPorFecha[fecha];
+                
+                let htmlDia = `<div data-fecha="${fecha}" style="margin-bottom: 20px;"><h3>📅 ${fechaLegible}</h3>`;
+                partidosDia.forEach(partido => {
+                    const horaCDMX = convertirHoraCDMX(partido.horaET);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    htmlDia += `
+                        <div class="partido-card" style="border-color: rgba(255,215,0,0.3);">
+                            <div class="partido-info">
+                                <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                                <span>🏟️ ${partido.estadio}</span>
+                            </div>
+                            <div class="equipos">
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                    ${partido.equipo1}
+                                </span>
+                                <span class="vs">vs</span>
+                                <span class="equipo">
+                                    ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                    ${partido.equipo2}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
+                htmlDia += `</div>`;
+                contenedor.innerHTML += htmlDia;
+            });
+        }
         
         // ========== POSICIONAR EN LA FECHA ACTUAL ==========
         setTimeout(() => {
@@ -1273,6 +1397,8 @@
             const todasLasFechas = {};
             partidosCalendario.forEach(p => { todasLasFechas[p.fecha] = true; });
             partidos8vos.forEach(p => { todasLasFechas[p.fecha] = true; });
+            partidosCuartos.forEach(p => { todasLasFechas[p.fecha] = true; });
+            partidosSemis.forEach(p => { todasLasFechas[p.fecha] = true; });
             const fechas = Object.keys(todasLasFechas).sort();
             
             let fechaMasCercana = fechas[0];
@@ -1553,6 +1679,141 @@
                 }
                 html += `</div>`;
             }
+
+            // ----- SECCIÓN: 4TOS Y SEMIS DE FINAL -----
+            const tienePredC = Object.keys(prediccionesCuartos).length > 0;
+
+            if (tienePredC) {
+                html += `<div style="margin-top: 40px; border-top: 3px solid #ffd700; padding-top: 20px;">`;
+                html += `<h2 style="color: #ffd700; text-align: center;">⚽ 4TOS Y SEMIS DE FINAL</h2>`;
+                
+                // ----- 4TOS -----
+                const partidos4PorFecha = {};
+                partidosCuartos.forEach(partido => {
+                    if (!partidos4PorFecha[partido.fecha]) partidos4PorFecha[partido.fecha] = [];
+                    partidos4PorFecha[partido.fecha].push(partido);
+                });
+                
+                const fechas4Ordenadas = Object.keys(partidos4PorFecha).sort();
+                
+                for (const fecha of fechas4Ordenadas) {
+                    const fechaLegible = formatearFechaCompleta(fecha);
+                    html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
+                    
+                    for (const partido of partidos4PorFecha[fecha]) {
+                        const partidoId = String(partido.id);
+                        const prediccion = prediccionesCuartos[partidoId] || 'No especificado';
+                        const diferencia = diferenciasCuartos[partidoId] || 'No especificado';
+                        const definicion = definicionesCuartos[partidoId] || 'No especificado';
+                        const horaCDMX = convertirHoraCDMX(partido.horaET);
+                        const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                        
+                        html += `
+                            <div class="partido-card" style="margin-bottom: 15px; border-color: rgba(255,215,0,0.3);">
+                                <div class="partido-info">
+                                    <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                    <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                                    <span>🏟️ ${partido.estadio}</span>
+                                </div>
+                                <div class="equipos">
+                                    <span class="equipo">
+                                        ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                        ${partido.equipo1}
+                                    </span>
+                                    <span class="vs">vs</span>
+                                    <span class="equipo">
+                                        ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                        ${partido.equipo2}
+                                    </span>
+                                </div>
+                                <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: rgba(255,215,0,0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.1);">
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Ganador</strong>
+                                        <span style="color: #ffd700; font-weight: bold; font-size: 0.85rem;">${prediccion}</span>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Diferencia</strong>
+                                        <span style="color: white; font-size: 0.85rem;">${diferencia} ${diferencia !== 'No especificado' ? 'gol' + (diferencia > 1 ? 'es' : '') : ''}</span>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Definición</strong>
+                                        <span style="color: white; font-size: 0.85rem;">${definicion}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    html += `</div>`;
+                }
+                
+                // ----- SEMIFINALES -----
+                // Verificar si las semifinales están desbloqueadas y tienen predicciones
+                const semisTienenPred = partidosSemis.some(p => prediccionesCuartos[String(p.id)]);
+                
+                if (semisTienenPred) {
+                    html += `<h3 style="color: #4FC3F7; border-left: 4px solid #4FC3F7; padding-left: 10px; margin-top: 20px;">⚽ SEMIFINALES</h3>`;
+                    
+                    const partidosSemisPorFecha = {};
+                    partidosSemis.forEach(partido => {
+                        if (!partidosSemisPorFecha[partido.fecha]) partidosSemisPorFecha[partido.fecha] = [];
+                        partidosSemisPorFecha[partido.fecha].push(partido);
+                    });
+                    
+                    const fechasSemisOrdenadas = Object.keys(partidosSemisPorFecha).sort();
+                    
+                    for (const fecha of fechasSemisOrdenadas) {
+                        const fechaLegible = formatearFechaCompleta(fecha);
+                        html += `<div data-fecha="${fecha}" style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
+                        
+                        for (const partido of partidosSemisPorFecha[fecha]) {
+                            const partidoId = String(partido.id);
+                            const prediccion = prediccionesCuartos[partidoId] || 'No especificado';
+                            const diferencia = diferenciasCuartos[partidoId] || 'No especificado';
+                            const definicion = definicionesCuartos[partidoId] || 'No especificado';
+                            const horaCDMX = convertirHoraCDMX(partido.horaET);
+                            const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                            
+                            html += `
+                                <div class="partido-card" style="margin-bottom: 15px; border-color: rgba(100,200,255,0.3); background: rgba(100,200,255,0.05);">
+                                    <div class="partido-info">
+                                        <span class="grupo-tag ${claseGrupo}" style="background: rgba(100,200,255,0.2);">${partido.grupo}</span>
+                                        <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                                        <span>🏟️ ${partido.estadio}</span>
+                                    </div>
+                                    <div class="equipos">
+                                        <span class="equipo">
+                                            ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                            ${partido.equipo1}
+                                        </span>
+                                        <span class="vs">vs</span>
+                                        <span class="equipo">
+                                            ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                            ${partido.equipo2}
+                                        </span>
+                                    </div>
+                                    <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: rgba(100,200,255,0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(100,200,255,0.1);">
+                                        <div style="text-align: center;">
+                                            <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Ganador</strong>
+                                            <span style="color: #4FC3F7; font-weight: bold; font-size: 0.85rem;">${prediccion}</span>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Diferencia</strong>
+                                            <span style="color: white; font-size: 0.85rem;">${diferencia} ${diferencia !== 'No especificado' ? 'gol' + (diferencia > 1 ? 'es' : '') : ''}</span>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase; letter-spacing: 1px;">Definición</strong>
+                                            <span style="color: white; font-size: 0.85rem;">${definicion}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        html += `</div>`;
+                    }
+                }
+                
+                html += `</div>`;
+            }
             
             contenedor.innerHTML = html;
             
@@ -1562,6 +1823,8 @@
                 const todasLasFechas = {};
                 partidosCalendario.forEach(p => { todasLasFechas[p.fecha] = true; });
                 partidos8vos.forEach(p => { todasLasFechas[p.fecha] = true; });
+                partidosCuartos.forEach(p => { todasLasFechas[p.fecha] = true; });
+                partidosSemis.forEach(p => { todasLasFechas[p.fecha] = true; });
                 const fechas = Object.keys(todasLasFechas).sort();
                 
                 let fechaMasCercana = fechas[0];
@@ -1749,6 +2012,77 @@
                     
                     html += `
                         <div id="resultado-${partido.id}" data-fecha="${partido.fecha}" style="margin-bottom: 15px; background: rgba(255,215,0,0.05); border-radius: 12px; padding: 12px; border: 1px solid rgba(255,215,0,0.2);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
+                                <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                                <span style="color: #8a9ba8; font-size: 0.7rem;">📅 ${fechaLegible}</span>
+                            </div>
+                            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 4px;">
+                                <span style="color: white; font-size: 0.9rem;">${partido.equipo1}</span>
+                                <span style="color: #ffd700; font-weight: bold; font-size: 1.2rem;">VS</span>
+                                <span style="color: white; font-size: 0.9rem;">${partido.equipo2}</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; background: rgba(255,215,0,0.08); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,215,0,0.1);">
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Ganador</strong>
+                                    <span style="color: #ffd700; font-weight: bold;">${item.ganador}</span>
+                                </div>
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Diferencia</strong>
+                                    <span style="color: white;">${item.diferencia} gol${item.diferencia > 1 ? 'es' : ''}</span>
+                                </div>
+                                <div style="text-align: center;">
+                                    <strong style="color: #8a9ba8; font-size: 0.65rem; display: block; text-transform: uppercase;">Definición</strong>
+                                    <span style="color: white;">${item.definicion}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            // ========== CARGAR RESULTADOS DE 4TOS Y SEMIS ==========
+            const urlC = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultadosCuartos`;
+            const responseC = await fetch(urlC);
+            const dataC = await responseC.json();
+
+            if (dataC.exito && Object.keys(dataC.resultados).length > 0) {
+                html += `<div style="margin: 40px 0 20px 0; border-top: 3px solid #ffd700; padding-top: 20px;">
+                    <h2 style="color: #ffd700; text-align: center;">⚽ 4TOS Y SEMIS DE FINAL</h2>
+                </div>`;
+                
+                const resultadosCArray = [];
+                for (const [partidoId, resultado] of Object.entries(dataC.resultados)) {
+                    // Buscar en 4tos primero
+                    let partido = partidosCuartos.find(p => p.id === partidoId);
+                    // Si no está en 4tos, buscar en Semis
+                    if (!partido) {
+                        partido = partidosSemis.find(p => p.id === partidoId);
+                    }
+                    if (partido) {
+                        resultadosCArray.push({
+                            id: partidoId,
+                            partido: partido,
+                            ganador: resultado.ganador,
+                            diferencia: resultado.diferencia,
+                            definicion: resultado.definicion
+                        });
+                    }
+                }
+                
+                resultadosCArray.sort((a, b) => a.partido.fecha.localeCompare(b.partido.fecha));
+                
+                for (const item of resultadosCArray) {
+                    const partido = item.partido;
+                    const fechaLegible = formatearFechaCompleta(partido.fecha);
+                    const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                    
+                    // Determinar si es 4tos o Semis para el color
+                    const esCuartos = partido.grupo === "4tos";
+                    const colorFondo = esCuartos ? 'rgba(255,215,0,0.05)' : 'rgba(100,200,255,0.05)';
+                    const bordeColor = esCuartos ? 'rgba(255,215,0,0.2)' : 'rgba(100,200,255,0.2)';
+                    
+                    html += `
+                        <div id="resultado-${partido.id}" data-fecha="${partido.fecha}" style="margin-bottom: 15px; background: ${colorFondo}; border-radius: 12px; padding: 12px; border: 1px solid ${bordeColor};">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap;">
                                 <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
                                 <span style="color: #8a9ba8; font-size: 0.7rem;">📅 ${fechaLegible}</span>
@@ -2348,6 +2682,15 @@
     let definiciones8vos = {};
     let prediccionesBloqueadas8vos = {};
 
+    // Variables para 4tos y Semis
+    let prediccionesCuartos = {};
+    let diferenciasCuartos = {};
+    let definicionesCuartos = {};
+    let prediccionesBloqueadasCuartos = {};
+
+    // Variable para controlar si las semifinales están desbloqueadas
+    let semisDesbloqueadas = false;
+
     // Función para cargar predicciones de 16avos de un familiar
     async function cargarPredicciones16avos(nombre) {
         const contenedor = document.getElementById('dieciseisavos-container');
@@ -2879,10 +3222,439 @@
     }
 
     // ========================
+    // FUNCIONES PARA 4TOS Y SEMIS
+    // ========================
+
+    async function cargarPrediccionesCuartos(nombre) {
+        const contenedor = document.getElementById('cuartos-container');
+        if (!contenedor) {
+            console.error("❌ No se encontró el contenedor 'cuartos-container'");
+            return;
+        }
+        contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
+        
+        try {
+            // Cargar predicciones de cuartos desde el backend
+            const url = `${GOOGLE_SCRIPT_URL}?accion=cargarPrediccionesCuartos&participante=${encodeURIComponent(nombre)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            console.log(`📥 Datos cargados para ${nombre}:`, data);
+            
+            if (!data.exito) {
+                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudieron cargar las predicciones'}</p>`;
+                return;
+            }
+            
+            // Guardar datos en variables globales
+            const prediccionesTemp = data.predicciones || {};
+            const diferenciasTemp = data.diferencias || {};
+            const definicionesTemp = data.definiciones || {};
+            
+            prediccionesCuartos = {};
+            diferenciasCuartos = {};
+            definicionesCuartos = {};
+            
+            for (const key in prediccionesTemp) {
+                prediccionesCuartos[String(key)] = prediccionesTemp[key];
+            }
+            for (const key in diferenciasTemp) {
+                diferenciasCuartos[String(key)] = diferenciasTemp[key];
+            }
+            for (const key in definicionesTemp) {
+                definicionesCuartos[String(key)] = definicionesTemp[key];
+            }
+            
+            // Verificar si las semifinales están desbloqueadas
+            // Esto se determina revisando si hay resultados de 4tos en el backend
+            semisDesbloqueadas = data.semisDesbloqueadas || false;
+            
+            // Determinar si está bloqueado (tiene predicciones guardadas)
+            const tienePredicciones = Object.keys(prediccionesCuartos).length > 0;
+            prediccionesBloqueadasCuartos[nombre] = tienePredicciones;
+            
+            console.log(`🔒 ${nombre}: ${tienePredicciones ? 'BLOQUEADO' : 'EDITABLE'}`);
+            console.log('📋 prediccionesCuartos:', prediccionesCuartos);
+            console.log('🔓 Semis desbloqueadas:', semisDesbloqueadas);
+            
+            // Mostrar los partidos
+            mostrarPartidosCuartos(nombre);
+            
+        } catch (error) {
+            console.error("Error:", error);
+            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+        }
+    }
+
+    function mostrarPartidosCuartos(nombre) {
+        const contenedor = document.getElementById('cuartos-container');
+        if (!contenedor) {
+            console.error("❌ No se encontró 'cuartos-container'");
+            return;
+        }
+        
+        const tienePredicciones = Object.keys(prediccionesCuartos).length > 0;
+        const estaBloqueado = prediccionesBloqueadasCuartos[nombre] || false;
+        
+        let html = `<p><strong>${nombre}</strong> - Predicciones de 4tos y Semis</p>`;
+        html += `<p style="font-size: 0.8rem; color: ${tienePredicciones ? '#ffd700' : '#8a9ba8'};">
+            ${tienePredicciones ? '🔒 Predicciones guardadas (bloqueadas)' : '📝 Sin predicciones guardadas (editable)'}
+        </p>`;
+        
+        // ========== SECCIÓN: 4TOS ==========
+        html += `<div style="margin-top: 20px;"><h3 style="color: #4CAF50; border-left: 4px solid #4CAF50; padding-left: 10px;">🏆 4TOS DE FINAL</h3></div>`;
+        
+        // Agrupar partidos de 4tos por fecha
+        const partidos4PorFecha = {};
+        partidosCuartos.forEach(partido => {
+            if (!partidos4PorFecha[partido.fecha]) partidos4PorFecha[partido.fecha] = [];
+            partidos4PorFecha[partido.fecha].push(partido);
+        });
+        
+        const fechas4Ordenadas = Object.keys(partidos4PorFecha).sort();
+        
+        for (const fecha of fechas4Ordenadas) {
+            const fechaLegible = formatearFechaCompleta(fecha);
+            html += `<div style="margin-bottom: 25px;"><h3 style="color: #FFE066; border-left: 4px solid #FFE066; padding-left: 10px;">📅 ${fechaLegible}</h3>`;
+            
+            for (const partido of partidos4PorFecha[fecha]) {
+                const partidoId = String(partido.id);
+                const prediccion = prediccionesCuartos[partidoId] || '';
+                const diferencia = diferenciasCuartos[partidoId] || '';
+                const definicion = definicionesCuartos[partidoId] || '';
+                const horaCDMX = convertirHoraCDMX(partido.horaET);
+                const claseGrupo = obtenerClaseGrupo(partido.grupo);
+                
+                const opcionesDiferencia = [1, 2, 3, '4+'];
+                const disabled = (estaBloqueado || tienePredicciones) ? 'disabled' : '';
+                
+                html += `
+                    <div class="partido-card" style="margin-bottom: 15px; border-color: rgba(255,215,0,0.3);">
+                        <div class="partido-info">
+                            <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                            <span>⏰ ${horaCDMX} h (CDMX) / ${partido.horaET} ET</span>
+                            <span>🏟️ ${partido.estadio}</span>
+                        </div>
+                        <div class="equipos">
+                            <span class="equipo">
+                                ${paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
+                                ${partido.equipo1}
+                            </span>
+                            <span class="vs">vs</span>
+                            <span class="equipo">
+                                ${paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
+                                ${partido.equipo2}
+                            </span>
+                        </div>
+                        <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <div>
+                                <label style="font-size: 0.7rem; color: #8a9ba8;">Ganador</label>
+                                <select id="ganadorC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                    <option value="">--</option>
+                                    <option value="${partido.equipo1}" ${prediccion === partido.equipo1 ? 'selected' : ''}>${partido.equipo1}</option>
+                                    <option value="${partido.equipo2}" ${prediccion === partido.equipo2 ? 'selected' : ''}>${partido.equipo2}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; color: #8a9ba8;">Diferencia</label>
+                                <select id="diferenciaC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                    <option value="">--</option>
+                                    ${opcionesDiferencia.map(d => `<option value="${d}" ${diferencia == d ? 'selected' : ''}>${d} gol${d > 1 ? 'es' : ''}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.7rem; color: #8a9ba8;">Definición</label>
+                                <select id="definicionC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                    <option value="">--</option>
+                                    <option value="90'" ${definicion === "90'" ? 'selected' : ''}>90'</option>
+                                    <option value="120'" ${definicion === "120'" ? 'selected' : ''}>120'</option>
+                                    <option value="Penales" ${definicion === 'Penales' ? 'selected' : ''}>Penales</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+        }
+        
+        // ========== SECCIÓN: SEMIFINALES ==========
+        const semisBloqueadas = !semisDesbloqueadas;
+        html += `<div style="margin-top: 40px; border-top: 3px solid #ffd700; padding-top: 20px;">`;
+        html += `<h3 style="color: #ffd700; border-left: 4px solid #ffd700; padding-left: 10px;">⚽ SEMIFINALES ${semisBloqueadas ? '🔒 (BLOQUEADAS)' : '🔓 (DESBLOQUEADAS)'}</h3>`;
+        html += `<p style="font-size: 0.8rem; color: ${semisBloqueadas ? '#ff6b6b' : '#51cf66'};">
+            ${semisBloqueadas ? '⏳ Esperando resultados de 4tos para definir cruces...' : '✅ Cruces definidos. ¡Puedes hacer tus predicciones!'}
+        </p>`;
+        
+        // Mostrar las 2 semifinales
+        for (let i = 0; i < partidosSemis.length; i++) {
+            const partido = partidosSemis[i];
+            const partidoId = String(partido.id);
+            const prediccion = prediccionesCuartos[partidoId] || '';
+            const diferencia = diferenciasCuartos[partidoId] || '';
+            const definicion = definicionesCuartos[partidoId] || '';
+            const claseGrupo = obtenerClaseGrupo(partido.grupo);
+            const horaCDMX = convertirHoraCDMX(partido.horaET);
+            
+            // Determinar si este partido está deshabilitado
+            const disabled = (semisBloqueadas || estaBloqueado || tienePredicciones) ? 'disabled' : '';
+            
+            // Si está bloqueado, mostrar equipos TBD
+            const equipo1Display = semisBloqueadas ? '❓ TBD' : partido.equipo1;
+            const equipo2Display = semisBloqueadas ? '❓ TBD' : partido.equipo2;
+            const opcionesDiferencia = [1, 2, 3, '4+'];
+            
+            html += `
+                <div class="partido-card" style="margin-bottom: 15px; border-color: rgba(255,215,0,0.3); background: ${semisBloqueadas ? 'rgba(255,0,0,0.05)' : 'rgba(255,215,0,0.05)'};">
+                    <div class="partido-info">
+                        <span class="grupo-tag ${claseGrupo}" style="background: rgba(255,215,0,0.15);">${partido.grupo}</span>
+                        <span>⏰ ${semisBloqueadas ? 'TBD' : horaCDMX} h (CDMX) / ${semisBloqueadas ? 'TBD' : partido.horaET} ET</span>
+                        <span>🏟️ ${semisBloqueadas ? 'TBD' : partido.estadio}</span>
+                    </div>
+                    <div class="equipos">
+                        <span class="equipo">
+                            ${semisBloqueadas ? '' : (paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : '')}
+                            ${equipo1Display}
+                        </span>
+                        <span class="vs">vs</span>
+                        <span class="equipo">
+                            ${semisBloqueadas ? '' : (paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : '')}
+                            ${equipo2Display}
+                        </span>
+                    </div>
+                    <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <div>
+                            <label style="font-size: 0.7rem; color: #8a9ba8;">Ganador</label>
+                            <select id="ganadorC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                <option value="">${semisBloqueadas ? '🔒 Bloqueado' : '--'}</option>
+                                ${!semisBloqueadas ? `
+                                    <option value="${partido.equipo1}" ${prediccion === partido.equipo1 ? 'selected' : ''}>${partido.equipo1}</option>
+                                    <option value="${partido.equipo2}" ${prediccion === partido.equipo2 ? 'selected' : ''}>${partido.equipo2}</option>
+                                ` : ''}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.7rem; color: #8a9ba8;">Diferencia</label>
+                            <select id="diferenciaC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                <option value="">${semisBloqueadas ? '🔒 Bloqueado' : '--'}</option>
+                                ${!semisBloqueadas ? opcionesDiferencia.map(d => `<option value="${d}" ${diferencia == d ? 'selected' : ''}>${d} gol${d > 1 ? 'es' : ''}</option>`).join('') : ''}
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.7rem; color: #8a9ba8;">Definición</label>
+                            <select id="definicionC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
+                                <option value="">${semisBloqueadas ? '🔒 Bloqueado' : '--'}</option>
+                                ${!semisBloqueadas ? `
+                                    <option value="90'" ${definicion === "90'" ? 'selected' : ''}>90'</option>
+                                    <option value="120'" ${definicion === "120'" ? 'selected' : ''}>120'</option>
+                                    <option value="Penales" ${definicion === 'Penales' ? 'selected' : ''}>Penales</option>
+                                ` : ''}
+                            </select>
+                        </div>
+                    </div>
+                    ${(estaBloqueado || tienePredicciones) ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,215,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ffd700;">🔒 Predicción guardada - No se puede modificar</div>' : ''}
+                    ${semisBloqueadas ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,0,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ff6b6b;">🔒 Esta semifinal estará disponible cuando se definan los cruces</div>' : ''}
+                </div>
+            `;
+        }
+        html += `</div>`;
+        
+        contenedor.innerHTML = html;
+    }
+
+    async function guardarPrediccionesCuartos() {
+        const nombre = document.getElementById('selector-familiar-cuartos').value;
+
+        if (prediccionesBloqueadasCuartos[nombre]) {
+            alert(`🔒 ${nombre} ya tiene sus predicciones de 4tos y Semis bloqueadas. No se pueden modificar.`);
+            return;
+        }
+        
+        // Verificar que las semifinales estén desbloqueadas antes de permitir guardar
+        if (!semisDesbloqueadas) {
+            alert(`⏳ Las semifinales aún no están definidas. Espera a que se ingresen los resultados de 4tos.`);
+            return;
+        }
+        
+        const confirmacion1 = confirm(`⚠️ ¿Estás SEGURO que quieres guardar tus predicciones de 4tos y Semis para ${nombre}?\n\n⚠️ UNA VEZ GUARDADAS YA NO PODRÁS MODIFICARLAS.`);
+        if (!confirmacion1) return;
+        
+        const confirmacion2 = confirm(`Última oportunidad: ¿Guardar predicciones de 4tos y Semis de ${nombre} definitivamente?`);
+        if (!confirmacion2) return;
+        
+        const predicciones = {};
+        const diferencias = {};
+        const definiciones = {};
+        
+        // ========== RECOPILAR PREDICCIONES DE 4TOS ==========
+        for (const partido of partidosCuartos) {
+            const partidoId = String(partido.id);
+            const ganadorSelect = document.getElementById(`ganadorC-${partidoId}`);
+            const diferenciaSelect = document.getElementById(`diferenciaC-${partidoId}`);
+            const definicionSelect = document.getElementById(`definicionC-${partidoId}`);
+            
+            if (!ganadorSelect || !diferenciaSelect || !definicionSelect) continue;
+            
+            const ganador = ganadorSelect.value;
+            if (!ganador) {
+                alert(`❌ Falta seleccionar el ganador para el partido ${partido.equipo1} vs ${partido.equipo2}`);
+                return;
+            }
+            
+            predicciones[partidoId] = ganador;
+            diferencias[partidoId] = diferenciaSelect.value;
+            definiciones[partidoId] = definicionSelect.value;
+        }
+        
+        // ========== RECOPILAR PREDICCIONES DE SEMIFINALES ==========
+        for (const partido of partidosSemis) {
+            const partidoId = String(partido.id);
+            const ganadorSelect = document.getElementById(`ganadorC-${partidoId}`);
+            const diferenciaSelect = document.getElementById(`diferenciaC-${partidoId}`);
+            const definicionSelect = document.getElementById(`definicionC-${partidoId}`);
+            
+            if (!ganadorSelect || !diferenciaSelect || !definicionSelect) continue;
+            
+            const ganador = ganadorSelect.value;
+            if (!ganador) {
+                alert(`❌ Falta seleccionar el ganador para la semifinal ${partido.equipo1} vs ${partido.equipo2}`);
+                return;
+            }
+            
+            predicciones[partidoId] = ganador;
+            diferencias[partidoId] = diferenciaSelect.value;
+            definiciones[partidoId] = definicionSelect.value;
+        }
+        
+        try {
+            const payload = {
+                accion: 'guardarPrediccionesCuartos',
+                participante: nombre,
+                predicciones: predicciones,
+                diferencias: diferencias,
+                definiciones: definiciones
+            };
+            
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            // Actualizar variables globales
+            prediccionesCuartos = {};
+            diferenciasCuartos = {};
+            definicionesCuartos = {};
+            
+            for (const key in predicciones) {
+                prediccionesCuartos[String(key)] = predicciones[key];
+            }
+            for (const key in diferencias) {
+                diferenciasCuartos[String(key)] = diferencias[key];
+            }
+            for (const key in definiciones) {
+                definicionesCuartos[String(key)] = definiciones[key];
+            }
+            
+            prediccionesBloqueadasCuartos[nombre] = true;
+            
+            alert(`✅ Predicciones de 4tos y Semis guardadas para ${nombre}`);
+            
+            // Recargar para mostrar el estado bloqueado
+            await cargarPrediccionesCuartos(nombre);
+            
+            // Si la pestaña de predicciones está activa, recargarla también
+            const tabPredicciones = document.getElementById('predicciones');
+            if (tabPredicciones && tabPredicciones.classList.contains('active')) {
+                await cargarPredicciones(nombre);
+            }
+            
+        } catch (error) {
+            console.error("Error:", error);
+            alert(`❌ Error de conexión: ${error.message}`);
+        }
+    }
+
+    async function cargarTablaCuartos() {
+        const contenedor = document.getElementById('tabla-cuartos-container');
+        if (!contenedor) {
+            console.error("❌ No se encontró 'tabla-cuartos-container'");
+            return;
+        }
+        contenedor.innerHTML = '<div class="cargando">Cargando tabla de 4tos y Semis...</div>';
+        
+        try {
+            const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerTablaCuartos`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (!data.exito) {
+                contenedor.innerHTML = `<p>❌ Error: ${data.error || 'No se pudo cargar la tabla'}</p>`;
+                return;
+            }
+            
+            if (data.tabla.length === 0) {
+                contenedor.innerHTML = `<p>⚠️ No hay datos suficientes para mostrar la tabla.</p>`;
+                return;
+            }
+            
+            let html = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif;">
+                        <thead>
+                            <tr style="background-color: #1a472a; color: white;">
+                                <th style="padding: 10px;">Posición</th>
+                                <th style="padding: 10px;">Participante</th>
+                                <th style="padding: 10px;">Puntos</th>
+                                <th style="padding: 10px;">Aciertos Ganador</th>
+                                <th style="padding: 10px;">Aciertos Diferencia</th>
+                                <th style="padding: 10px;">Aciertos Definición</th>
+                                <th style="padding: 10px;">Partidos Jugados</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            data.tabla.forEach((item, idx) => {
+                // Determinar medalla según posición
+                let medalla = '';
+                if (idx === 0) medalla = '🥇 ';
+                else if (idx === 1) medalla = '🥈 ';
+                else if (idx === 2) medalla = '🥉 ';
+                
+                html += `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 10px; text-align: center;">${medalla}${idx + 1}º</td>
+                        <td style="padding: 10px;">${item.participante}</td>
+                        <td style="padding: 10px; text-align: center; font-weight: bold; color: #ffd700;">${item.puntos}</td>
+                        <td style="padding: 10px; text-align: center;">${item.aciertosGanador}</td>
+                        <td style="padding: 10px; text-align: center;">${item.aciertosDiferencia}</td>
+                        <td style="padding: 10px; text-align: center;">${item.aciertosDefinicion}</td>
+                        <td style="padding: 10px; text-align: center;">${item.partidosJugados}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            contenedor.innerHTML = html;
+            
+        } catch (error) {
+            console.error("Error:", error);
+            contenedor.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+        }
+    }
+
+    // ========================
     // NAVEGACIÓN DE PESTAÑAS
     // ========================
     function initTabs() {
-        const tabs = ['calendario', 'predicciones', 'resultados', 'posiciones', 'posiciones-grupos', 'octavos', 'tabla-16avos', 'tabla-8vos', 'tabla-grupos'];
+        const tabs = ['calendario', 'predicciones', 'resultados', 'posiciones', 'posiciones-grupos', 'cuartos', 'tabla-16avos', 'tabla-8vos', 'tabla-cuartos', 'tabla-grupos'];
+
         tabs.forEach(tab => {
             const btn = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
             if (btn) {
@@ -2902,13 +3674,15 @@
                         cargarTablaPosiciones();
                     } else if (tab === 'posiciones-grupos') {
                         cargarPosicionesGrupos();
-                    } else if (tab === 'octavos') {
-                        const nombre = document.getElementById('selector-familiar-8vos').value;
-                        cargarPredicciones8vos(nombre);
+                    } else if (tab === 'cuartos') {
+                        const nombre = document.getElementById('selector-familiar-cuartos').value;
+                        cargarPrediccionesCuartos(nombre);
                     } else if (tab === 'tabla-16avos') {
                         cargarTabla16avos();
                     } else if (tab === 'tabla-8vos') {
                         cargarTabla8vos();
+                    } else if (tab === 'tabla-cuartos') {
+                        cargarTablaCuartos();
                     } else if (tab === 'tabla-grupos') {
                         cargarTablaGrupos();
                     }
@@ -2970,10 +3744,13 @@
         // 3. Cargar predicciones de 8vos para el usuario por defecto
         await cargarPredicciones8vos(nombreDefault);
         
-        // 4. Cargar resultados
+        // 4. Cargar predicciones de 4tos y Semis para el usuario por defecto
+        await cargarPrediccionesCuartos(nombreDefault);
+        
+        // 5. Cargar resultados
         cargarResultados();
         
-        // 5. Inicializar pestañas
+        // 6. Inicializar pestañas
         initTabs();
     });
 
@@ -3001,6 +3778,46 @@
     });
 
     document.getElementById('btn-guardar-8vos').addEventListener('click', guardarPredicciones8vos);
+
+    // ========================
+    // EVENTOS DE 4TOS Y SEMIS
+    // ========================
+    const btnCargarCuartos = document.getElementById('btn-cargar-cuartos');
+    if (btnCargarCuartos) {
+        btnCargarCuartos.addEventListener('click', () => {
+            const nombre = document.getElementById('selector-familiar-cuartos').value;
+            cargarPrediccionesCuartos(nombre);
+        });
+    }
+
+    const btnGuardarCuartos = document.getElementById('btn-guardar-cuartos');
+    if (btnGuardarCuartos) {
+        btnGuardarCuartos.addEventListener('click', guardarPrediccionesCuartos);
+    }
+
+    // Evento para cuando se cambia el selector de 4tos y Semis
+    const selectorCuartos = document.getElementById('selector-familiar-cuartos');
+    if (selectorCuartos) {
+        selectorCuartos.addEventListener('change', async function() {
+            const nombre = this.value;
+            await cargarPrediccionesCuartos(nombre);
+            const tabPredicciones = document.getElementById('predicciones');
+            if (tabPredicciones && tabPredicciones.classList.contains('active')) {
+                await cargarPredicciones(nombre);
+            }
+        });
+    }
+
+    // Evento para cuando se cambia el selector de predicciones
+    document.getElementById('selector-familiar-pred').addEventListener('change', async function() {
+        const nombre = this.value;
+        await cargarPredicciones(nombre);
+        const tabCuartos = document.getElementById('cuartos');
+        if (tabCuartos && tabCuartos.classList.contains('active')) {
+            await cargarPrediccionesCuartos(nombre);
+        }
+    });
+
 </script>
 </body>
 </html>
