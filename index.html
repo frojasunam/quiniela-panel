@@ -919,6 +919,92 @@
         console.log('Contenido ' + i + ':', 'id="' + content.id + '"');
     });
 
+    async function cargarTodasLasPrediccionesDe(nombre) {
+        console.log(`🔄 Cargando TODAS las predicciones para: ${nombre}`);
+    
+        try {
+            // 1. Cargar predicciones de GRUPOS (con marcadores)
+            const urlGrupos = `${GOOGLE_SCRIPT_URL}?accion=obtenerPrediccionesDeUsuario&participante=${encodeURIComponent(nombre)}`;
+            const responseGrupos = await fetch(urlGrupos);
+            const dataGrupos = await responseGrupos.json();
+            
+            if (dataGrupos.exito) {
+                window.prediccionesGrupos = dataGrupos.predicciones || {};
+                window.marcadoresGrupos = dataGrupos.marcadores || {};
+            }
+            
+            // 2. Cargar predicciones de 16AVOS
+            const url16 = `${GOOGLE_SCRIPT_URL}?accion=cargarPredicciones16avos&participante=${encodeURIComponent(nombre)}`;
+            const response16 = await fetch(url16);
+            const data16 = await response16.json();
+            
+            if (data16.exito) {
+                predicciones16avos = {};
+                diferencias16avos = {};
+                definiciones16avos = {};
+                for (const key in data16.predicciones) {
+                    predicciones16avos[String(key)] = data16.predicciones[key];
+                }
+                for (const key in data16.diferencias) {
+                    diferencias16avos[String(key)] = data16.diferencias[key];
+                }
+                for (const key in data16.definiciones) {
+                    definiciones16avos[String(key)] = data16.definiciones[key];
+                }
+            }
+            
+            // 3. Cargar predicciones de 8VOS
+            const url8 = `${GOOGLE_SCRIPT_URL}?accion=cargarPredicciones8vos&participante=${encodeURIComponent(nombre)}`;
+            const response8 = await fetch(url8);
+            const data8 = await response8.json();
+            
+            if (data8.exito) {
+                predicciones8vos = {};
+                diferencias8vos = {};
+                definiciones8vos = {};
+                for (const key in data8.predicciones) {
+                    predicciones8vos[String(key)] = data8.predicciones[key];
+                }
+                for (const key in data8.diferencias) {
+                    diferencias8vos[String(key)] = data8.diferencias[key];
+                }
+                for (const key in data8.definiciones) {
+                    definiciones8vos[String(key)] = data8.definiciones[key];
+                }
+            }
+            
+            // 4. Cargar predicciones de 4TOS Y SEMIS
+            const urlC = `${GOOGLE_SCRIPT_URL}?accion=cargarPrediccionesCuartos&participante=${encodeURIComponent(nombre)}`;
+            const responseC = await fetch(urlC);
+            const dataC = await responseC.json();
+            
+            if (dataC.exito) {
+                prediccionesCuartos = {};
+                diferenciasCuartos = {};
+                definicionesCuartos = {};
+                for (const key in dataC.predicciones) {
+                    prediccionesCuartos[String(key)] = dataC.predicciones[key];
+                }
+                for (const key in dataC.diferencias) {
+                    diferenciasCuartos[String(key)] = dataC.diferencias[key];
+                }
+                for (const key in dataC.definiciones) {
+                    definicionesCuartos[String(key)] = dataC.definiciones[key];
+                }
+                semisDesbloqueadas = dataC.semisDesbloqueadas || false;
+            }
+            
+            console.log(`✅ Todas las predicciones cargadas para ${nombre}`);
+            console.log(`   - Grupos: ${Object.keys(prediccionesGrupos || {}).length}`);
+            console.log(`   - 16vos: ${Object.keys(predicciones16avos).length}`);
+            console.log(`   - 8vos: ${Object.keys(predicciones8vos).length}`);
+            console.log(`   - 4tos y Semis: ${Object.keys(prediccionesCuartos).length}`);
+            
+        } catch (error) {
+            console.error("Error cargando todas las predicciones:", error);
+        }
+    }
+
     async function cargarTodasLasPredicciones() {
         try {
             const url = `${GOOGLE_SCRIPT_URL}?accion=obtenerTodasLasPredicciones`;
@@ -1456,38 +1542,9 @@
         contenedor.innerHTML = '<div class="cargando">Cargando predicciones...</div>';
         
         try {
-            // ========== CARGAR PREDICCIONES DE GRUPOS ==========
-            const urlGrupos = `${GOOGLE_SCRIPT_URL}?accion=obtenerPrediccionesDeUsuario&participante=${encodeURIComponent(nombre)}`;
-            const responseGrupos = await fetch(urlGrupos);
-            const dataGrupos = await responseGrupos.json();
-            
-            // ========== CARGAR PREDICCIONES DE 16AVOS ==========
-            const url16avos = `${GOOGLE_SCRIPT_URL}?accion=cargarPredicciones16avos&participante=${encodeURIComponent(nombre)}`;
-            const response16avos = await fetch(url16avos);
-            const data16avos = await response16avos.json();
-            
-            // ========== PROCESAR DATOS ==========
-            const prediccionesMap = dataGrupos.exito ? (dataGrupos.predicciones || {}) : {};
-            const marcadoresMap = dataGrupos.exito ? (dataGrupos.marcadores || {}) : {};
-            
-            const predicciones16Map = data16avos.exito ? (data16avos.predicciones || {}) : {};
-            const diferencias16Map = data16avos.exito ? (data16avos.diferencias || {}) : {};
-            const definiciones16Map = data16avos.exito ? (data16avos.definiciones || {}) : {};
-            
-            // Actualizar variables globales
-            predicciones16avos = {};
-            diferencias16avos = {};
-            definiciones16avos = {};
-            for (const key in predicciones16Map) {
-                predicciones16avos[String(key)] = predicciones16Map[key];
-            }
-            for (const key in diferencias16Map) {
-                diferencias16avos[String(key)] = diferencias16Map[key];
-            }
-            for (const key in definiciones16Map) {
-                definiciones16avos[String(key)] = definiciones16Map[key];
-            }
-            prediccionesBloqueadas16avos[nombre] = Object.keys(predicciones16avos).length > 0;
+            // ========== CARGAR TODAS LAS PREDICCIONES DEL INTEGRANTE ==========
+            // Esto asegura que las variables globales estén actualizadas con los datos de este integrante
+            await cargarTodasLasPrediccionesDe(nombre);
             
             // ========== GENERAR HTML ==========
             let html = `<p><strong>${nombre}</strong> - Resumen de predicciones:</p>`;
@@ -1509,8 +1566,9 @@
                 
                 for (const partido of partidosPorFecha[fecha]) {
                     const partidoId = String(partido.id);
-                    const prediccion = prediccionesMap[partidoId] || null;
-                    const marcador = marcadoresMap[partidoId] || null;
+                    // Usar window.prediccionesGrupos que se cargó en cargarTodasLasPrediccionesDe
+                    const prediccion = window.prediccionesGrupos ? window.prediccionesGrupos[partidoId] : null;
+                    const marcador = window.marcadoresGrupos ? window.marcadoresGrupos[partidoId] : null;
                     const horaCDMX = convertirHoraCDMX(partido.horaET);
                     const claseGrupo = obtenerClaseGrupo(partido.grupo);
                     
@@ -1780,7 +1838,6 @@
                 }
                 
                 // ----- SEMIFINALES -----
-                // Verificar si las semifinales están desbloqueadas y tienen predicciones
                 const semisTienenPred = partidosSemis.some(p => prediccionesCuartos[String(p.id)]);
                 
                 if (semisTienenPred) {
@@ -3812,14 +3869,17 @@
     // ========================
     // SELECTOR DE FAMILIAR
     // ========================
-    document.getElementById('selector-familiar-pred').addEventListener('change', (e) => {
-        cargarPredicciones(e.target.value);
+    document.getElementById('selector-familiar-pred').addEventListener('change', async function(e) {
+        const nombre = this.value;
+        console.log(`🔄 Cambiando a integrante: ${nombre}`);
+        
+        // 1. Cargar TODAS las predicciones del nuevo integrante
+        await cargarTodasLasPrediccionesDe(nombre);
+        
+        // 2. Mostrar las predicciones en la pestaña
+        cargarPredicciones(nombre);
     });
     
-    // ========================
-    // INICIALIZACIÓN COMPLETA
-    // ========================
-
     // ========================
     // INICIALIZACIÓN COMPLETA
     // ========================
