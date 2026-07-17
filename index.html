@@ -921,9 +921,9 @@
 
     async function cargarTodasLasPrediccionesDe(nombre) {
         console.log(`🔄 Cargando TODAS las predicciones para: ${nombre}`);
-    
+        
         try {
-            // 1. Cargar predicciones de GRUPOS (con marcadores)
+            // 1. Cargar predicciones de GRUPOS
             const urlGrupos = `${GOOGLE_SCRIPT_URL}?accion=obtenerPrediccionesDeUsuario&participante=${encodeURIComponent(nombre)}`;
             const responseGrupos = await fetch(urlGrupos);
             const dataGrupos = await responseGrupos.json();
@@ -973,29 +973,12 @@
                 }
             }
             
-            // 4. Cargar predicciones de 4TOS Y SEMIS
-            const urlC = `${GOOGLE_SCRIPT_URL}?accion=cargarPrediccionesCuartos&participante=${encodeURIComponent(nombre)}`;
-            const responseC = await fetch(urlC);
-            const dataC = await responseC.json();
-            
-            if (dataC.exito) {
-                prediccionesCuartos = {};
-                diferenciasCuartos = {};
-                definicionesCuartos = {};
-                for (const key in dataC.predicciones) {
-                    prediccionesCuartos[String(key)] = dataC.predicciones[key];
-                }
-                for (const key in dataC.diferencias) {
-                    diferenciasCuartos[String(key)] = dataC.diferencias[key];
-                }
-                for (const key in dataC.definiciones) {
-                    definicionesCuartos[String(key)] = dataC.definiciones[key];
-                }
-                semisDesbloqueadas = dataC.semisDesbloqueadas || false;
-            }
+            // 4. Cargar predicciones de 4TOS Y SEMIS (esto también actualiza los cruces)
+            // Usamos la función cargarPrediccionesCuartos que ya tiene la lógica de actualización
+            await cargarPrediccionesCuartos(nombre);
             
             console.log(`✅ Todas las predicciones cargadas para ${nombre}`);
-            console.log(`   - Grupos: ${Object.keys(prediccionesGrupos || {}).length}`);
+            console.log(`   - Grupos: ${Object.keys(window.prediccionesGrupos || {}).length}`);
             console.log(`   - 16vos: ${Object.keys(predicciones16avos).length}`);
             console.log(`   - 8vos: ${Object.keys(predicciones8vos).length}`);
             console.log(`   - 4tos y Semis: ${Object.keys(prediccionesCuartos).length}`);
@@ -3320,6 +3303,48 @@
                 return;
             }
             
+            // ========== ACTUALIZAR SEMIFINALES CON GANADORES REALES ==========
+            // Cargar los resultados reales de 4tos para obtener los ganadores
+            const urlResultados4tos = `${GOOGLE_SCRIPT_URL}?accion=obtenerResultadosCuartos`;
+            const responseResultados = await fetch(urlResultados4tos);
+            const dataResultados = await responseResultados.json();
+            
+            if (dataResultados.exito && Object.keys(dataResultados.resultados).length > 0) {
+                // Mapear ganadores por partidoId
+                const ganadores = {};
+                for (const [partidoId, resultado] of Object.entries(dataResultados.resultados)) {
+                    ganadores[partidoId] = resultado.ganador;
+                }
+                
+                // Actualizar partidosSemis con los ganadores reales
+                // Semifinal 1: Ganador de 4tos 1 (partido 1) vs Ganador de 4tos 2 (partido 2)
+                // Semifinal 2: Ganador de 4tos 3 (partido 3) vs Ganador de 4tos 4 (partido 4)
+                if (ganadores["1"] && ganadores["2"]) {
+                    partidosSemis[0].equipo1 = ganadores["1"];
+                    partidosSemis[0].equipo2 = ganadores["2"];
+                    semisDesbloqueadas = true;
+                } else {
+                    // Si no hay resultados, mantener los placeholders
+                    partidosSemis[0].equipo1 = "Ganador 4tos 1";
+                    partidosSemis[0].equipo2 = "Ganador 4tos 2";
+                }
+                
+                if (ganadores["3"] && ganadores["4"]) {
+                    partidosSemis[1].equipo1 = ganadores["3"];
+                    partidosSemis[1].equipo2 = ganadores["4"];
+                    semisDesbloqueadas = true;
+                } else {
+                    partidosSemis[1].equipo1 = "Ganador 4tos 3";
+                    partidosSemis[1].equipo2 = "Ganador 4tos 4";
+                }
+                
+                console.log('🔓 Cruces de semifinales actualizados:', partidosSemis);
+            } else {
+                console.log('⏳ Aún no hay resultados de 4tos, semifinales bloqueadas');
+                semisDesbloqueadas = false;
+            }
+            // ================================================================
+            
             const prediccionesTemp = data.predicciones || {};
             const diferenciasTemp = data.diferencias || {};
             const definicionesTemp = data.definiciones || {};
@@ -3339,7 +3364,6 @@
                 definicionesCuartos[String(key)] = definicionesTemp[key];
             }
             
-            semisDesbloqueadas = data.semisDesbloqueadas || false;
             const tienePredicciones = Object.keys(prediccionesCuartos).length > 0;
             prediccionesBloqueadasCuartos[nombre] = tienePredicciones;
             
@@ -3443,6 +3467,7 @@
                                 </select>
                             </div>
                         </div>
+                        ${(estaBloqueado && tienePredicciones) ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,215,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ffd700;">🔒 Predicción guardada - No se puede modificar</div>' : ''}
                     </div>
                 `;
             }
@@ -3450,7 +3475,13 @@
         }
         
         // ========== SECCIÓN: SEMIFINALES ==========
-        const semisBloqueadas = !semisDesbloqueadas;
+        // Verificar si los cruces están definidos (los equipos no son "Ganador 4tos X")
+        const crucesDefinidos = partidosSemis[0].equipo1 !== "Ganador 4tos 1" && partidosSemis[0].equipo2 !== "Ganador 4tos 2";
+        const crucesDefinidos2 = partidosSemis[1].equipo1 !== "Ganador 4tos 3" && partidosSemis[1].equipo2 !== "Ganador 4tos 4";
+        
+        // Si los cruces NO están definidos, mostrar BLOQUEADAS
+        const semisBloqueadas = !crucesDefinidos || !crucesDefinidos2;
+        
         html += `<div style="margin-top: 40px; border-top: 3px solid #ffd700; padding-top: 20px;">`;
         html += `<h3 style="color: #ffd700; border-left: 4px solid #ffd700; padding-left: 10px;">⚽ SEMIFINALES ${semisBloqueadas ? '🔒 (BLOQUEADAS)' : '🔓 (DESBLOQUEADAS)'}</h3>`;
         html += `<p style="font-size: 0.8rem; color: ${semisBloqueadas ? '#ff6b6b' : '#51cf66'};">
@@ -3471,9 +3502,12 @@
             const disabled = (semisBloqueadas || estaBloqueado || tienePredicciones) ? 'disabled' : '';
             
             // Si está bloqueado, mostrar equipos TBD
-            const equipo1Display = semisBloqueadas ? '❓ TBD' : partido.equipo1;
-            const equipo2Display = semisBloqueadas ? '❓ TBD' : partido.equipo2;
+            const equipo1Display = semisBloqueadas || partido.equipo1 === "Ganador 4tos 1" || partido.equipo1 === "Ganador 4tos 3" ? '❓ TBD' : partido.equipo1;
+            const equipo2Display = semisBloqueadas || partido.equipo2 === "Ganador 4tos 2" || partido.equipo2 === "Ganador 4tos 4" ? '❓ TBD' : partido.equipo2;
             const opcionesDiferencia = [1, 2, 3, '4+'];
+            
+            // Si está bloqueado o los equipos son TBD, no mostrar opciones
+            const mostrarOpciones = !semisBloqueadas && partido.equipo1 !== "Ganador 4tos 1" && partido.equipo1 !== "Ganador 4tos 3";
             
             html += `
                 <div class="partido-card" style="margin-bottom: 15px; border-color: rgba(255,215,0,0.3); background: ${semisBloqueadas ? 'rgba(255,0,0,0.05)' : 'rgba(255,215,0,0.05)'};">
@@ -3484,12 +3518,12 @@
                     </div>
                     <div class="equipos">
                         <span class="equipo">
-                            ${semisBloqueadas ? '' : (paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : '')}
+                            ${!semisBloqueadas && partido.equipo1 !== "Ganador 4tos 1" && partido.equipo1 !== "Ganador 4tos 3" && paisCode[partido.equipo1] ? `<span class="fi fi-${paisCode[partido.equipo1]}"></span>` : ''}
                             ${equipo1Display}
                         </span>
                         <span class="vs">vs</span>
                         <span class="equipo">
-                            ${semisBloqueadas ? '' : (paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : '')}
+                            ${!semisBloqueadas && partido.equipo2 !== "Ganador 4tos 2" && partido.equipo2 !== "Ganador 4tos 4" && paisCode[partido.equipo2] ? `<span class="fi fi-${paisCode[partido.equipo2]}"></span>` : ''}
                             ${equipo2Display}
                         </span>
                     </div>
@@ -3497,8 +3531,8 @@
                         <div>
                             <label style="font-size: 0.7rem; color: #8a9ba8;">Ganador</label>
                             <select id="ganadorC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
-                                <option value="">${semisBloqueadas ? '🔒 Bloqueado' : '--'}</option>
-                                ${!semisBloqueadas ? `
+                                <option value="">${semisBloqueadas || !mostrarOpciones ? '🔒 Bloqueado' : '--'}</option>
+                                ${mostrarOpciones && !semisBloqueadas ? `
                                     <option value="${partido.equipo1}" ${prediccion === partido.equipo1 ? 'selected' : ''}>${partido.equipo1}</option>
                                     <option value="${partido.equipo2}" ${prediccion === partido.equipo2 ? 'selected' : ''}>${partido.equipo2}</option>
                                 ` : ''}
@@ -3507,15 +3541,15 @@
                         <div>
                             <label style="font-size: 0.7rem; color: #8a9ba8;">Diferencia</label>
                             <select id="diferenciaC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
-                                <option value="">${semisBloqueadas ? '🔒 Bloqueado' : '--'}</option>
-                                ${!semisBloqueadas ? opcionesDiferencia.map(d => `<option value="${d}" ${diferencia == d ? 'selected' : ''}>${d} gol${d > 1 ? 'es' : ''}</option>`).join('') : ''}
+                                <option value="">${semisBloqueadas || !mostrarOpciones ? '🔒 Bloqueado' : '--'}</option>
+                                ${mostrarOpciones && !semisBloqueadas ? opcionesDiferencia.map(d => `<option value="${d}" ${diferencia == d ? 'selected' : ''}>${d} gol${d > 1 ? 'es' : ''}</option>`).join('') : ''}
                             </select>
                         </div>
                         <div>
                             <label style="font-size: 0.7rem; color: #8a9ba8;">Definición</label>
                             <select id="definicionC-${partidoId}" data-partido-id="${partidoId}" ${disabled}>
-                                <option value="">${semisBloqueadas ? '🔒 Bloqueado' : '--'}</option>
-                                ${!semisBloqueadas ? `
+                                <option value="">${semisBloqueadas || !mostrarOpciones ? '🔒 Bloqueado' : '--'}</option>
+                                ${mostrarOpciones && !semisBloqueadas ? `
                                     <option value="90'" ${definicion === "90'" ? 'selected' : ''}>90'</option>
                                     <option value="120'" ${definicion === "120'" ? 'selected' : ''}>120'</option>
                                     <option value="Penales" ${definicion === 'Penales' ? 'selected' : ''}>Penales</option>
@@ -3523,7 +3557,7 @@
                             </select>
                         </div>
                     </div>
-                    ${(estaBloqueado || tienePredicciones) ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,215,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ffd700;">🔒 Predicción guardada - No se puede modificar</div>' : ''}
+                    ${(estaBloqueado && tienePredicciones) ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,215,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ffd700;">🔒 Predicción guardada - No se puede modificar</div>' : ''}
                     ${semisBloqueadas ? '<div style="margin-top: 8px; padding: 6px; background: rgba(255,0,0,0.1); border-radius: 8px; text-align: center; font-size: 0.7rem; color: #ff6b6b;">🔒 Esta semifinal estará disponible cuando se definan los cruces</div>' : ''}
                 </div>
             `;
@@ -3541,17 +3575,23 @@
             return;
         }
         
-        const confirmacion1 = confirm(`⚠️ ¿Estás SEGURO que quieres guardar tus predicciones de 4tos${semisDesbloqueadas ? ' y Semis' : ''} para ${nombre}?\n\n⚠️ UNA VEZ GUARDADAS YA NO PODRÁS MODIFICARLAS.`);
+        // Verificar que las semifinales estén desbloqueadas antes de permitir guardar
+        if (!semisDesbloqueadas) {
+            alert(`⏳ Las semifinales aún no están definidas. Espera a que se ingresen los resultados de 4tos.`);
+            return;
+        }
+        
+        const confirmacion1 = confirm(`⚠️ ¿Estás SEGURO que quieres guardar tus predicciones de 4tos y Semis para ${nombre}?\n\n⚠️ UNA VEZ GUARDADAS YA NO PODRÁS MODIFICARLAS.`);
         if (!confirmacion1) return;
         
-        const confirmacion2 = confirm(`Última oportunidad: ¿Guardar predicciones de 4tos${semisDesbloqueadas ? ' y Semis' : ''} de ${nombre} definitivamente?`);
+        const confirmacion2 = confirm(`Última oportunidad: ¿Guardar predicciones de 4tos y Semis de ${nombre} definitivamente?`);
         if (!confirmacion2) return;
         
         const predicciones = {};
         const diferencias = {};
         const definiciones = {};
         
-        // ========== RECOPILAR PREDICCIONES DE 4TOS (SIEMPRE) ==========
+        // ========== RECOPILAR PREDICCIONES DE 4TOS ==========
         for (const partido of partidosCuartos) {
             const partidoId = String(partido.id);
             const ganadorSelect = document.getElementById(`ganadorC-${partidoId}`);
@@ -3873,7 +3913,7 @@
         const nombre = this.value;
         console.log(`🔄 Cambiando a integrante: ${nombre}`);
         
-        // 1. Cargar TODAS las predicciones del nuevo integrante
+        // 1. Cargar TODAS las predicciones del nuevo integrante (esto también actualiza cruces)
         await cargarTodasLasPrediccionesDe(nombre);
         
         // 2. Mostrar las predicciones en la pestaña
@@ -3896,20 +3936,13 @@
         // 3. Cargar TODAS las predicciones para el usuario por defecto
         const nombreDefault = document.getElementById('selector-familiar-pred').value;
         
-        // Cargar predicciones de grupos
-        await cargarPredicciones(nombreDefault);
-        
-        // Cargar predicciones de 16avos (ya está en cargarPredicciones)
-        // Cargar predicciones de 8vos (ahora modifica la función para que solo guarde datos)
-        await cargarPredicciones8vos(nombreDefault);
-        
-        // Cargar predicciones de 4tos
-        await cargarPrediccionesCuartos(nombreDefault);
+        // Cargar TODAS las predicciones de una vez (esto también actualiza los cruces de semis)
+        await cargarTodasLasPrediccionesDe(nombreDefault);
         
         // 4. Cargar resultados
         cargarResultados();
         
-        // 5. Recargar predicciones para mostrar todo junto
+        // 5. Mostrar predicciones
         await cargarPredicciones(nombreDefault);
         
         console.log('✅ Inicialización completa');
